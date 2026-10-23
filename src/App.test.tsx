@@ -1,0 +1,119 @@
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+import App from './App'
+
+describe('App', () => {
+  it('analyses a message and displays the warning and safer guidance', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    expect(
+      screen.getByRole('heading', { name: 'সন্দেহজনক বার্তা?' }),
+    ).toBeInTheDocument()
+    await user.type(
+      screen.getByRole('textbox', { name: 'সন্দেহজনক বার্তা' }),
+      'আপনার OTP পাঠান',
+    )
+    await user.click(screen.getByRole('button', { name: /বার্তা বিশ্লেষণ করুন/ }))
+
+    expect(
+      screen.getByRole('heading', { name: 'গোপন যাচাইকরণ তথ্য চাওয়া হয়েছে' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        (_, element) => element?.classList.contains('evidence') ?? false,
+      ),
+    ).toHaveTextContent('OTP পাঠান')
+    expect(screen.getByText(/কোড বা পাসওয়ার্ড শেয়ার করবেন না/)).toBeInTheDocument()
+  })
+
+  it('switches the full interface to English and localizes validation', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'English' }))
+    expect(
+      screen.getByRole('heading', { name: 'Unsure about a message?' }),
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Analyse message' }))
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Add some message text before analysing.',
+    )
+  })
+
+  it('provides an accessible empty-input error', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /বার্তা বিশ্লেষণ করুন/ }))
+
+    const input = screen.getByRole('textbox', { name: 'সন্দেহজনক বার্তা' })
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'বিশ্লেষণের আগে বার্তার লেখা যোগ করুন।',
+    )
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(input).toHaveAttribute('aria-describedby', 'message-error')
+  })
+
+  it('loads an example, analyses it, and clears both the text and results', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'OTP অনুরোধ' }))
+    const input = screen.getByRole('textbox', { name: 'সন্দেহজনক বার্তা' })
+    expect(input).toHaveValue('আপনার অ্যাকাউন্ট বন্ধ হবে। এখনই OTP পাঠান।')
+
+    await user.click(screen.getByRole('button', { name: /বার্তা বিশ্লেষণ করুন/ }))
+    expect(
+      screen.getByRole('heading', { name: 'গোপন যাচাইকরণ তথ্য চাওয়া হয়েছে' }),
+    ).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'মুছে ফেলুন' }))
+    expect(input).toHaveValue('')
+    expect(
+      screen.queryByRole('heading', { name: 'গোপন যাচাইকরণ তথ্য চাওয়া হয়েছে' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByText('বিশ্লেষণ শুরু করতে উপরের বাক্সে একটি বার্তা লিখুন।'),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps submitted text local without network, storage, cookie, or console writes', async () => {
+    const user = userEvent.setup()
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    const xhrSend = vi
+      .spyOn(XMLHttpRequest.prototype, 'send')
+      .mockImplementation(() => undefined)
+    const storageWrite = vi
+      .spyOn(Storage.prototype, 'setItem')
+      .mockImplementation(() => undefined)
+    const windowOpen = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => undefined)
+    const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const localStorageBefore = localStorage.length
+    const sessionStorageBefore = sessionStorage.length
+    const cookiesBefore = document.cookie
+    render(<App />)
+
+    await user.type(
+      screen.getByRole('textbox', { name: 'সন্দেহজনক বার্তা' }),
+      'Share your OTP at http://example.test',
+    )
+    await user.click(screen.getByRole('button', { name: /বার্তা বিশ্লেষণ করুন/ }))
+    await user.click(screen.getByRole('button', { name: 'মুছে ফেলুন' }))
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(xhrSend).not.toHaveBeenCalled()
+    expect(windowOpen).not.toHaveBeenCalled()
+    expect(storageWrite).not.toHaveBeenCalled()
+    expect(localStorage.length).toBe(localStorageBefore)
+    expect(sessionStorage.length).toBe(sessionStorageBefore)
+    expect(document.cookie).toBe(cookiesBefore)
+    expect(consoleLog).not.toHaveBeenCalled()
+    expect(consoleWarn).not.toHaveBeenCalled()
+    expect(consoleError).not.toHaveBeenCalled()
+  })
+})

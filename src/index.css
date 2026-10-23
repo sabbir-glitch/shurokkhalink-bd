@@ -1,0 +1,66 @@
+:root {
+  font-family: 'Noto Sans Bengali', 'Segoe UI', sans-serif;
+  color: #25352b;
+  background: #fcfdfb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --ink: #25352b;
+  --muted: #68776d;
+  --line: #e4eae5;
+  --green: #287049;
+  --green-dark: #205d3c;
+  --green-soft: #eaf3ed;
+  --mono: 'Cascadia Code', Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+body,
+button,
+textarea {
+  font-family: 'Noto Sans Bengali', 'Segoe UI', sans-serif;
+}
+
+button,
+a,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #8ab99a;
+  outline-offset: 3px;
+}
+
+::selection {
+  background: #cfe3d4;
+  color: #1b3927;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
