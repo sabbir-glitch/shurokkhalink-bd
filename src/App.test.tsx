@@ -73,7 +73,9 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { name: 'গোপন যাচাইকরণ তথ্য চাওয়া হয়েছে' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('2টি লক্ষণ পাওয়া গেছে।')
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'বিশ্লেষণে 2টি লক্ষণ: গোপন যাচাইকরণ তথ্য চাওয়া হয়েছে। জরুরি পদক্ষেপের চাপ।',
+    )
 
     await user.click(screen.getByRole('button', { name: 'মুছে ফেলুন' }))
     expect(input).toHaveValue('')

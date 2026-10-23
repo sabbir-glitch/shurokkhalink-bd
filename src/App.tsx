@@ -33,8 +33,10 @@ const copy = {
     resultIdle: 'বিশ্লেষণ শুরু হলে ফলাফল এখানে দেখানো হবে।',
     resultFindings: (count: number) => `${count}টি লক্ষণ পাওয়া গেছে`,
     resultClear: 'এই লেখায় পরিচিত কোনো সতর্ক সংকেত মেলেনি। তবুও সতর্ক থাকুন।',
-    resultAnnouncement: (count: number) =>
-      count === 0 ? 'কোনো পরিচিত সতর্ক সংকেত মেলেনি।' : `${count}টি লক্ষণ পাওয়া গেছে।`,
+    resultAnnouncement: (labels: string[]) =>
+      labels.length === 0
+        ? 'কোনো পরিচিত সতর্ক সংকেত মেলেনি।'
+        : `বিশ্লেষণে ${labels.length}টি লক্ষণ: ${labels.join('। ')}।`,
     detected: 'যা লক্ষ্য করা গেছে',
     why: 'কেন খেয়াল করবেন',
     safer: 'নিরাপদ পদক্ষেপ',
@@ -128,10 +130,10 @@ const copy = {
     resultFindings: (count: number) =>
       `${count} ${count === 1 ? 'sign' : 'signs'} noticed`,
     resultClear: 'No common warning signs matched this text. Continue to use caution.',
-    resultAnnouncement: (count: number) =>
-      count === 0
+    resultAnnouncement: (labels: string[]) =>
+      labels.length === 0
         ? 'No common warning signs matched this text.'
-        : `${count} ${count === 1 ? 'finding' : 'findings'} noticed.`,
+        : `${labels.length} ${labels.length === 1 ? 'finding' : 'findings'} noticed: ${labels.join('; ')}.`,
     detected: 'What we noticed',
     why: 'Why it deserves attention',
     safer: 'A safer next step',
@@ -398,7 +400,11 @@ function App() {
             aria-live="polite"
             aria-atomic="true"
           >
-            {findings === null ? '' : text.resultAnnouncement(findings.length)}
+            {findings === null
+              ? ''
+              : text.resultAnnouncement(
+                  findings.map((finding) => findingText(finding, 'label')),
+                )}
           </p>
           <div className="results-content">
             {findings === null ? (

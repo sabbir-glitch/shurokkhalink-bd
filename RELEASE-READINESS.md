@@ -1,48 +1,64 @@
-# v0.1 release-readiness checklist
+# ShurokkhaLink BD v0.1 release readiness
 
-## Verified for a local demonstration
+## Verified in the application
 
-- [x] Workspace dependencies and existing implementation used; no new
-      dependencies added.
-- [x] Bangla-first and English UI, sample messages, validation, analysis, and
-      clearing covered by component tests.
-- [x] Responsive CSS includes narrow-screen layouts, wrapping, and larger
-      language/example touch targets.
-- [x] Keyboard focus styling, semantic headings and form label, validation
-      alert, language-group labels, and a concise live analysis status are present
-      in the source.
-- [x] Analyzer remains local and deterministic; no submitted URL is fetched or
-      opened by application code.
-- [x] Synthetic analyzer corpus, build, lint, and formatting checks pass (see
-      the release verification report for the observed run).
-- [x] `.nvmrc` pins Node.js `24.22.1`; documented start command is `npm run
-dev`.
+- Bangla is the default UI language; the language control switches the UI and
+  document language to English or Bangla.
+- Sample messages, empty-input validation, analysis, result clearing, and
+  changed-input behavior are covered by component tests.
+- The deterministic local analyzer reports a limited set of secret-request,
+  urgency, prize-claim, link-presence, and URL-structure findings.
+- Link presence is informational. URL parsing describes observable HTTP,
+  embedded user information, IP-literal host, and punycode characteristics.
+- The application source does not send submitted text to an analysis service,
+  persist it, or log its content; the analyzer does not fetch or open submitted
+  URLs.
+- Narrow-screen CSS includes responsive breakpoints, wrapping, and larger
+  language, example, and action controls. This is source inspection, not
+  verification on actual devices.
+- The table-driven synthetic corpus tests intended rules and edge cases. It
+  does not measure real-world fraud detection accuracy.
 
-## Not manually verified
+## Automated release checks
 
-- [ ] Physical-device or browser responsive testing at specific viewport sizes.
-- [ ] Screen-reader behavior with actual assistive technology and keyboard-only
-      usability across supported browsers.
-- [ ] Color contrast measured using an independent accessibility tool.
-- [ ] Hosting/CDN behavior, production request logs, deployment security
-      headers, and browser-extension or third-party instrumentation behavior.
-- [ ] Message-pattern performance against a representative, consented,
-      real-world language corpus. Synthetic cases do not establish detection
-      accuracy.
+The current local verification run completed:
 
-## Before any public production release
+- `npm run test:run` — passed (68 tests).
+- `npm run build` — passed.
+- `npm run lint` — passed.
+- `npm run format:check` — passed.
+- `npm run test` — passed (68 tests; one-shot, no watch process).
 
-- [ ] Perform manual accessibility and responsive testing, then address
-      findings.
-- [ ] Review privacy wording and actual hosting/browser delivery configuration
-      in the intended production environment.
-- [ ] Conduct an independent security and privacy review of the production
-      build and hosting setup.
-- [ ] Review Bangla/English safety wording with appropriate local-language and
-      user representatives.
-- [ ] Make and document a product decision about support/contact information
-      and operational ownership before offering the tool publicly.
+Component tests provide automated evidence for UI flows and announcements.
+They are not a substitute for assistive-technology testing.
 
-This checklist does not certify production readiness. The current scope is a
-local v0.1 demonstration; the analyzer is not a fraud verdict or URL safety
-service.
+## Manual testing evidence and gaps
+
+- The project owner reports initial testing with three people representing the
+  intended audience. This task did not include their specific findings,
+  comments, test procedure, or device details, so no conclusions about their
+  understanding or satisfaction are recorded here.
+- Physical-device and browser viewport checks at 320–375 CSS pixels have not
+  been verified in this release task.
+- Actual keyboard-only and screen-reader behavior has not been verified with
+  assistive technology.
+- Color contrast has not been measured with an independent tool.
+- No production host, CDN, headers, deployment logs, browser extensions, or
+  third-party instrumentation were inspected or tested.
+
+## Remaining before public production deployment
+
+- Complete and document responsive, keyboard, and assistive-technology testing
+  in supported browsers and real devices.
+- Measure visual contrast and remediate any failures.
+- Review Bangla and English safety explanations with appropriate local-language
+  and intended-user representatives; include their actual feedback in release
+  evidence.
+- Review the built application and intended hosting/privacy configuration,
+  including security headers and any third-party services.
+- Decide and document operational ownership and support/contact information.
+
+**Verdict:** suitable for a controlled local demonstration and v0.1 release
+candidate review. Not yet verified for public production deployment. This
+checklist is not a security certification or a claim of fraud-detection
+accuracy.
