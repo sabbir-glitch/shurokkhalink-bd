@@ -99,6 +99,9 @@ npm run dev
 Open the local URL printed by Vite (normally `http://localhost:5173/`). For a
 short walkthrough of the three synthetic examples, language switching, and
 accurate privacy/limitation wording, see [DEMO-GUIDE.md](./DEMO-GUIDE.md).
+For a static online demonstration, see
+[DEPLOYMENT-GUIDE.md](./DEPLOYMENT-GUIDE.md); no deployment or publication is
+performed automatically.
 
 ## Checks
 

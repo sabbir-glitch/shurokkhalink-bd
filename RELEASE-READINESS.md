@@ -18,6 +18,11 @@
   verification on actual devices.
 - The table-driven synthetic corpus tests intended rules and edge cases. It
   does not measure real-world fraud detection accuracy.
+- Static hosting preparation is documented in
+  [DEPLOYMENT-GUIDE.md](./DEPLOYMENT-GUIDE.md). Cloudflare Pages is configured
+  for Vite's `dist/` output with static security headers in `public/_headers`;
+  the policy file is included in a local build, but no hosted deployment has
+  been performed or verified.
 
 ## Automated release checks
 
@@ -43,8 +48,10 @@ They are not a substitute for assistive-technology testing.
 - Actual keyboard-only and screen-reader behavior has not been verified with
   assistive technology.
 - Color contrast has not been measured with an independent tool.
-- No production host, CDN, headers, deployment logs, browser extensions, or
-  third-party instrumentation were inspected or tested.
+- No production host, CDN response, deployment logs, browser extensions, or
+  third-party instrumentation were inspected or tested. The recommended
+  hosting provider's published configuration documentation was consulted, but
+  no dashboard/account configuration was made.
 
 ## Remaining before public production deployment
 
@@ -56,6 +63,9 @@ They are not a substitute for assistive-technology testing.
   evidence.
 - Review the built application and intended hosting/privacy configuration,
   including security headers and any third-party services.
+- Deploy a reviewed branch, then inspect actual HTTPS behavior, response
+  headers, network requests, provider logging/privacy settings, and all loaded
+  assets on the hosted URL.
 - Decide and document operational ownership and support/contact information.
 
 **Verdict:** suitable for a controlled local demonstration and v0.1 release
