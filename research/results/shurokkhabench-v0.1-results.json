@@ -1,0 +1,541 @@
+{
+  "benchmark": "ShurokkhaBench",
+  "version": "0.1.0-development",
+  "generatedAt": "2026-10-23T18:24:09.144Z",
+  "interpretation": "Synthetic intended-behaviour results only. These are not real-world phishing or fraud detection accuracy estimates.",
+  "caseCount": 36,
+  "exactFindingSetMatches": 36,
+  "exactFindingSetMatchRate": 1,
+  "perLanguage": [
+    {
+      "language": "en",
+      "cases": 12,
+      "exactFindingSetMatches": 12,
+      "exactFindingSetMatchRate": 1
+    },
+    {
+      "language": "bn",
+      "cases": 12,
+      "exactFindingSetMatches": 12,
+      "exactFindingSetMatchRate": 1
+    },
+    {
+      "language": "mixed",
+      "cases": 12,
+      "exactFindingSetMatches": 12,
+      "exactFindingSetMatchRate": 1
+    }
+  ],
+  "perKind": [
+    {
+      "kind": "secret",
+      "cases": 36,
+      "expectedPositive": 8,
+      "tp": 8,
+      "fp": 0,
+      "fn": 0,
+      "tn": 28,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
+      "falsePositiveRate": 0
+    },
+    {
+      "kind": "urgency",
+      "cases": 36,
+      "expectedPositive": 6,
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "tn": 30,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
+      "falsePositiveRate": 0
+    },
+    {
+      "kind": "prize",
+      "cases": 36,
+      "expectedPositive": 6,
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "tn": 30,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
+      "falsePositiveRate": 0
+    },
+    {
+      "kind": "link",
+      "cases": 36,
+      "expectedPositive": 8,
+      "tp": 8,
+      "fp": 0,
+      "fn": 0,
+      "tn": 28,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
+      "falsePositiveRate": 0
+    },
+    {
+      "kind": "http",
+      "cases": 36,
+      "expectedPositive": 1,
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "tn": 35,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
+      "falsePositiveRate": 0
+    },
+    {
+      "kind": "credentials",
+      "cases": 36,
+      "expectedPositive": 1,
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "tn": 35,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
+      "falsePositiveRate": 0
+    },
+    {
+      "kind": "ip",
+      "cases": 36,
+      "expectedPositive": 2,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "tn": 34,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
+      "falsePositiveRate": 0
+    },
+    {
+      "kind": "punycode",
+      "cases": 36,
+      "expectedPositive": 1,
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "tn": 35,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
+      "falsePositiveRate": 0
+    }
+  ],
+  "cases": [
+    {
+      "id": "EN-001",
+      "language": "en",
+      "category": "ordinary-message",
+      "expectedKinds": [],
+      "observedKinds": [],
+      "exactMatch": true
+    },
+    {
+      "id": "EN-002",
+      "language": "en",
+      "category": "benign-urgency-wording",
+      "expectedKinds": [],
+      "observedKinds": [],
+      "exactMatch": true
+    },
+    {
+      "id": "EN-003",
+      "language": "en",
+      "category": "benign-prize-wording",
+      "expectedKinds": [],
+      "observedKinds": [],
+      "exactMatch": true
+    },
+    {
+      "id": "EN-004",
+      "language": "en",
+      "category": "protective-advice",
+      "expectedKinds": [],
+      "observedKinds": [],
+      "exactMatch": true
+    },
+    {
+      "id": "EN-005",
+      "language": "en",
+      "category": "secret-request",
+      "expectedKinds": [
+        "secret"
+      ],
+      "observedKinds": [
+        "secret"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "EN-006",
+      "language": "en",
+      "category": "secret-request",
+      "expectedKinds": [
+        "secret"
+      ],
+      "observedKinds": [
+        "secret"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "EN-007",
+      "language": "en",
+      "category": "urgency-pressure",
+      "expectedKinds": [
+        "urgency"
+      ],
+      "observedKinds": [
+        "urgency"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "EN-008",
+      "language": "en",
+      "category": "urgency-pressure",
+      "expectedKinds": [
+        "urgency"
+      ],
+      "observedKinds": [
+        "urgency"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "EN-009",
+      "language": "en",
+      "category": "prize-claim",
+      "expectedKinds": [
+        "prize"
+      ],
+      "observedKinds": [
+        "prize"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "EN-010",
+      "language": "en",
+      "category": "prize-claim",
+      "expectedKinds": [
+        "prize"
+      ],
+      "observedKinds": [
+        "prize"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "EN-011",
+      "language": "en",
+      "category": "informational-link",
+      "expectedKinds": [
+        "link"
+      ],
+      "observedKinds": [
+        "link"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "EN-012",
+      "language": "en",
+      "category": "url-structure",
+      "expectedKinds": [
+        "http",
+        "link"
+      ],
+      "observedKinds": [
+        "http",
+        "link"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "BN-001",
+      "language": "bn",
+      "category": "ordinary-message",
+      "expectedKinds": [],
+      "observedKinds": [],
+      "exactMatch": true
+    },
+    {
+      "id": "BN-002",
+      "language": "bn",
+      "category": "benign-urgency-wording",
+      "expectedKinds": [],
+      "observedKinds": [],
+      "exactMatch": true
+    },
+    {
+      "id": "BN-003",
+      "language": "bn",
+      "category": "benign-prize-wording",
+      "expectedKinds": [],
+      "observedKinds": [],
+      "exactMatch": true
+    },
+    {
+      "id": "BN-004",
+      "language": "bn",
+      "category": "protective-advice",
+      "expectedKinds": [],
+      "observedKinds": [],
+      "exactMatch": true
+    },
+    {
+      "id": "BN-005",
+      "language": "bn",
+      "category": "secret-request",
+      "expectedKinds": [
+        "secret"
+      ],
+      "observedKinds": [
+        "secret"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "BN-006",
+      "language": "bn",
+      "category": "secret-request",
+      "expectedKinds": [
+        "secret"
+      ],
+      "observedKinds": [
+        "secret"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "BN-007",
+      "language": "bn",
+      "category": "urgency-pressure",
+      "expectedKinds": [
+        "urgency"
+      ],
+      "observedKinds": [
+        "urgency"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "BN-008",
+      "language": "bn",
+      "category": "combined-secret-and-urgency",
+      "expectedKinds": [
+        "secret",
+        "urgency"
+      ],
+      "observedKinds": [
+        "secret",
+        "urgency"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "BN-009",
+      "language": "bn",
+      "category": "prize-claim",
+      "expectedKinds": [
+        "prize"
+      ],
+      "observedKinds": [
+        "prize"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "BN-010",
+      "language": "bn",
+      "category": "prize-claim",
+      "expectedKinds": [
+        "prize"
+      ],
+      "observedKinds": [
+        "prize"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "BN-011",
+      "language": "bn",
+      "category": "informational-link",
+      "expectedKinds": [
+        "link"
+      ],
+      "observedKinds": [
+        "link"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "BN-012",
+      "language": "bn",
+      "category": "url-structure",
+      "expectedKinds": [
+        "ip",
+        "link"
+      ],
+      "observedKinds": [
+        "ip",
+        "link"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "MX-001",
+      "language": "mixed",
+      "category": "ordinary-message",
+      "expectedKinds": [],
+      "observedKinds": [],
+      "exactMatch": true
+    },
+    {
+      "id": "MX-002",
+      "language": "mixed",
+      "category": "benign-prize-wording",
+      "expectedKinds": [],
+      "observedKinds": [],
+      "exactMatch": true
+    },
+    {
+      "id": "MX-003",
+      "language": "mixed",
+      "category": "protective-advice",
+      "expectedKinds": [],
+      "observedKinds": [],
+      "exactMatch": true
+    },
+    {
+      "id": "MX-004",
+      "language": "mixed",
+      "category": "secret-request",
+      "expectedKinds": [
+        "secret"
+      ],
+      "observedKinds": [
+        "secret"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "MX-005",
+      "language": "mixed",
+      "category": "secret-request",
+      "expectedKinds": [
+        "secret"
+      ],
+      "observedKinds": [
+        "secret"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "MX-006",
+      "language": "mixed",
+      "category": "urgency-pressure",
+      "expectedKinds": [
+        "urgency"
+      ],
+      "observedKinds": [
+        "urgency"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "MX-007",
+      "language": "mixed",
+      "category": "prize-claim",
+      "expectedKinds": [
+        "prize"
+      ],
+      "observedKinds": [
+        "prize"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "MX-008",
+      "language": "mixed",
+      "category": "combined-secret-urgency-prize",
+      "expectedKinds": [
+        "prize",
+        "secret",
+        "urgency"
+      ],
+      "observedKinds": [
+        "prize",
+        "secret",
+        "urgency"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "MX-009",
+      "language": "mixed",
+      "category": "informational-link",
+      "expectedKinds": [
+        "link"
+      ],
+      "observedKinds": [
+        "link"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "MX-010",
+      "language": "mixed",
+      "category": "url-structure",
+      "expectedKinds": [
+        "credentials",
+        "link"
+      ],
+      "observedKinds": [
+        "credentials",
+        "link"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "MX-011",
+      "language": "mixed",
+      "category": "url-structure",
+      "expectedKinds": [
+        "ip",
+        "link"
+      ],
+      "observedKinds": [
+        "ip",
+        "link"
+      ],
+      "exactMatch": true
+    },
+    {
+      "id": "MX-012",
+      "language": "mixed",
+      "category": "url-structure",
+      "expectedKinds": [
+        "link",
+        "punycode"
+      ],
+      "observedKinds": [
+        "link",
+        "punycode"
+      ],
+      "exactMatch": true
+    }
+  ]
+}

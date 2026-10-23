@@ -1,0 +1,295 @@
+{
+  "benchmark": "ShurokkhaBench",
+  "version": "0.1.0-development",
+  "purpose": "Synthetic intended-behaviour regression benchmark; not a real-world fraud detector evaluation.",
+  "cases": [
+    {
+      "id": "EN-001",
+      "language": "en",
+      "category": "ordinary-message",
+      "message": "Your appointment is confirmed for Tuesday at 10 am.",
+      "expectedKinds": [],
+      "rationale": "Routine appointment wording should not trigger the current warning indicators."
+    },
+    {
+      "id": "EN-002",
+      "language": "en",
+      "category": "benign-urgency-wording",
+      "message": "The urgent care clinic opens at noon.",
+      "expectedKinds": [],
+      "rationale": "Urgent is part of a service name, not pressure on the recipient to act."
+    },
+    {
+      "id": "EN-003",
+      "language": "en",
+      "category": "benign-prize-wording",
+      "message": "Your reward points balance is 1200.",
+      "expectedKinds": [],
+      "rationale": "A reward-points balance is not a personal unexpected-prize claim."
+    },
+    {
+      "id": "EN-004",
+      "language": "en",
+      "category": "protective-advice",
+      "message": "Never share your OTP with anyone.",
+      "expectedKinds": [],
+      "rationale": "Advice not to share authentication secrets should not be treated as a request to share them."
+    },
+    {
+      "id": "EN-005",
+      "language": "en",
+      "category": "secret-request",
+      "message": "Please send your OTP to confirm the transfer.",
+      "expectedKinds": ["secret"],
+      "rationale": "The message requests an OTP."
+    },
+    {
+      "id": "EN-006",
+      "language": "en",
+      "category": "secret-request",
+      "message": "Enter your verification code to continue.",
+      "expectedKinds": ["secret"],
+      "rationale": "The message requests a verification code."
+    },
+    {
+      "id": "EN-007",
+      "language": "en",
+      "category": "urgency-pressure",
+      "message": "Act now or your account will be blocked.",
+      "expectedKinds": ["urgency"],
+      "rationale": "An immediate-action demand is paired with a threatened consequence."
+    },
+    {
+      "id": "EN-008",
+      "language": "en",
+      "category": "urgency-pressure",
+      "message": "Your account will be suspended within 5 minutes.",
+      "expectedKinds": ["urgency"],
+      "rationale": "A short time limit and account-suspension consequence indicate pressure."
+    },
+    {
+      "id": "EN-009",
+      "language": "en",
+      "category": "prize-claim",
+      "message": "You have won a cash prize.",
+      "expectedKinds": ["prize"],
+      "rationale": "The message claims a personal prize win."
+    },
+    {
+      "id": "EN-010",
+      "language": "en",
+      "category": "prize-claim",
+      "message": "Claim your reward now.",
+      "expectedKinds": ["prize"],
+      "rationale": "The wording is a direct instruction to claim a reward."
+    },
+    {
+      "id": "EN-011",
+      "language": "en",
+      "category": "informational-link",
+      "message": "Read more at https://example.test/news.",
+      "expectedKinds": ["link"],
+      "rationale": "The URL should be identified, but HTTPS link presence alone is not a fraud verdict."
+    },
+    {
+      "id": "EN-012",
+      "language": "en",
+      "category": "url-structure",
+      "message": "Details: http://example.test/info",
+      "expectedKinds": ["link", "http"],
+      "rationale": "The URL is present and uses HTTP."
+    },
+    {
+      "id": "BN-001",
+      "language": "bn",
+      "category": "ordinary-message",
+      "message": "আজ বিকেলে দেখা হবে, ভালো থেকো।",
+      "expectedKinds": [],
+      "rationale": "Ordinary Bangla conversation should not trigger the implemented indicators."
+    },
+    {
+      "id": "BN-002",
+      "language": "bn",
+      "category": "benign-urgency-wording",
+      "message": "আজই দেখা হবে, ভালো থেকো।",
+      "expectedKinds": [],
+      "rationale": "আজই in a casual plan is not by itself a pressured action request."
+    },
+    {
+      "id": "BN-003",
+      "language": "bn",
+      "category": "benign-prize-wording",
+      "message": "পুরস্কারের নিয়মাবলি ও শর্তাবলি পড়ুন।",
+      "expectedKinds": [],
+      "rationale": "Neutral information about prize rules is not a personal prize claim."
+    },
+    {
+      "id": "BN-004",
+      "language": "bn",
+      "category": "protective-advice",
+      "message": "কখনোই আপনার OTP কাউকে পাঠাবেন না।",
+      "expectedKinds": [],
+      "rationale": "Protective advice should not be confused with a request to share a secret."
+    },
+    {
+      "id": "BN-005",
+      "language": "bn",
+      "category": "secret-request",
+      "message": "আপনার ওটিপি পাঠান।",
+      "expectedKinds": ["secret"],
+      "rationale": "The message asks the recipient to send an OTP."
+    },
+    {
+      "id": "BN-006",
+      "language": "bn",
+      "category": "secret-request",
+      "message": "আপনার পাসওয়ার্ড দিন।",
+      "expectedKinds": ["secret"],
+      "rationale": "The message asks the recipient to provide a password."
+    },
+    {
+      "id": "BN-007",
+      "language": "bn",
+      "category": "urgency-pressure",
+      "message": "এখন না করলে আপনার অ্যাকাউন্ট বন্ধ হয়ে যাবে।",
+      "expectedKinds": ["urgency"],
+      "rationale": "A conditional account-closure threat creates pressure to act."
+    },
+    {
+      "id": "BN-008",
+      "language": "bn",
+      "category": "combined-secret-and-urgency",
+      "message": "এখনই আপনার PIN দিন, না হলে অ্যাকাউন্ট বন্ধ হবে।",
+      "expectedKinds": ["secret", "urgency"],
+      "rationale": "The message combines a PIN request with an account-closure threat."
+    },
+    {
+      "id": "BN-009",
+      "language": "bn",
+      "category": "prize-claim",
+      "message": "অভিনন্দন, আপনি ৫০,০০০ টাকা জিতেছেন!",
+      "expectedKinds": ["prize"],
+      "rationale": "The message claims the recipient won money."
+    },
+    {
+      "id": "BN-010",
+      "language": "bn",
+      "category": "prize-claim",
+      "message": "পুরস্কার পেতে লিংকে ক্লিক করুন।",
+      "expectedKinds": ["prize"],
+      "rationale": "The message tells the recipient to click to claim a prize."
+    },
+    {
+      "id": "BN-011",
+      "language": "bn",
+      "category": "informational-link",
+      "message": "আরও তথ্য: https://example.test/notice",
+      "expectedKinds": ["link"],
+      "rationale": "A bare HTTPS link is informative and should not alone be treated as fraud."
+    },
+    {
+      "id": "BN-012",
+      "language": "bn",
+      "category": "url-structure",
+      "message": "বিস্তারিত: https://192.0.2.1/login",
+      "expectedKinds": ["link", "ip"],
+      "rationale": "The URL has an IPv4 literal host; this is an observation, not proof of fraud."
+    },
+    {
+      "id": "MX-001",
+      "language": "mixed",
+      "category": "ordinary-message",
+      "message": "kal dekha hobe, bhalo theko",
+      "expectedKinds": [],
+      "rationale": "Casual romanized Bangla should not trigger the current English/Bangla patterns."
+    },
+    {
+      "id": "MX-002",
+      "language": "mixed",
+      "category": "benign-prize-wording",
+      "message": "Your reward points 1200 ache.",
+      "expectedKinds": [],
+      "rationale": "The word reward without a claim or winner phrase is not enough."
+    },
+    {
+      "id": "MX-003",
+      "language": "mixed",
+      "category": "protective-advice",
+      "message": "Please never share your password with anyone.",
+      "expectedKinds": [],
+      "rationale": "Explicit protective wording should not be interpreted as a credential request."
+    },
+    {
+      "id": "MX-004",
+      "language": "mixed",
+      "category": "secret-request",
+      "message": "PIN ta পাঠান।",
+      "expectedKinds": ["secret"],
+      "rationale": "An English secret term is paired with a Bangla request verb."
+    },
+    {
+      "id": "MX-005",
+      "language": "mixed",
+      "category": "secret-request",
+      "message": "Share করুন আপনার OTP।",
+      "expectedKinds": ["secret"],
+      "rationale": "An English request verb appears in a Bangla sentence."
+    },
+    {
+      "id": "MX-006",
+      "language": "mixed",
+      "category": "urgency-pressure",
+      "message": "এখনই verify করুন, না হলে account বন্ধ হয়ে যাবে।",
+      "expectedKinds": ["urgency"],
+      "rationale": "The code-mixed message combines immediate action with a threatened account consequence."
+    },
+    {
+      "id": "MX-007",
+      "language": "mixed",
+      "category": "prize-claim",
+      "message": "Congratulations, apni ৫০,০০০ টাকা জিতেছেন!",
+      "expectedKinds": ["prize"],
+      "rationale": "A code-mixed statement makes a personal money-winning claim."
+    },
+    {
+      "id": "MX-008",
+      "language": "mixed",
+      "category": "combined-secret-urgency-prize",
+      "message": "URGENT: Share your OTP now to claim your prize.",
+      "expectedKinds": ["secret", "urgency", "prize"],
+      "rationale": "The message contains a secret request, urgency cue, and prize claim."
+    },
+    {
+      "id": "MX-009",
+      "language": "mixed",
+      "category": "informational-link",
+      "message": "এই notice পড়ুন: https://example.test/info",
+      "expectedKinds": ["link"],
+      "rationale": "The URL should be observed without making a safety or reputation claim."
+    },
+    {
+      "id": "MX-010",
+      "language": "mixed",
+      "category": "url-structure",
+      "message": "Details: https://user:pass@example.test/login",
+      "expectedKinds": ["link", "credentials"],
+      "rationale": "The URL authority contains user information."
+    },
+    {
+      "id": "MX-011",
+      "language": "mixed",
+      "category": "url-structure",
+      "message": "Visit https://[2001:db8::1]/login",
+      "expectedKinds": ["link", "ip"],
+      "rationale": "The URL has an IPv6 literal host; this does not establish maliciousness."
+    },
+    {
+      "id": "MX-012",
+      "language": "mixed",
+      "category": "url-structure",
+      "message": "See https://xn--e1afmkfd.example/login",
+      "expectedKinds": ["link", "punycode"],
+      "rationale": "A punycode hostname label is observed; punycode alone does not prove fraud."
+    }
+  ]
+}
