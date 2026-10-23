@@ -1,138 +1,523 @@
 import { describe, expect, it } from 'vitest'
-import { analyzeMessage } from './analyzeMessage'
+import { analyzeMessage, type FindingKind } from './analyzeMessage'
 
-describe('analyzeMessage', () => {
-  it('returns no findings for empty or ordinary harmless text', () => {
-    expect(analyzeMessage('')).toEqual([])
-    expect(analyzeMessage('   \n\t')).toEqual([])
-    expect(
-      analyzeMessage('Your appointment is confirmed for Tuesday at 10 am.'),
-    ).toEqual([])
-    expect(analyzeMessage('আজ বিকেলে দেখা হবে, ভালো থেকো।')).toEqual([])
+interface EvaluationCase {
+  id: string
+  category: string
+  message: string
+  expectedIds: string[]
+  mustNotFind: FindingKind[]
+  rationale: string
+}
+
+const evaluationCases: EvaluationCase[] = [
+  {
+    id: 'empty-string',
+    category: 'empty and harmless',
+    message: '',
+    expectedIds: [],
+    mustNotFind: [],
+    rationale: 'An empty input has no text patterns or links to inspect.',
+  },
+  {
+    id: 'whitespace-only',
+    category: 'empty and harmless',
+    message: ' \n\t ',
+    expectedIds: [],
+    mustNotFind: [],
+    rationale: 'Whitespace alone should not produce a warning.',
+  },
+  {
+    id: 'ordinary-english',
+    category: 'empty and harmless',
+    message: 'Your appointment is confirmed for Tuesday at 10 am.',
+    expectedIds: [],
+    mustNotFind: ['secret', 'urgency', 'prize', 'link'],
+    rationale: 'A routine appointment has none of the implemented triggers.',
+  },
+  {
+    id: 'ordinary-bangla',
+    category: 'empty and harmless',
+    message: 'আজ বিকেলে দেখা হবে, ভালো থেকো।',
+    expectedIds: [],
+    mustNotFind: ['secret', 'urgency', 'prize'],
+    rationale: 'Ordinary Bangla conversation should remain unflagged.',
+  },
+  {
+    id: 'isolated-reward-points',
+    category: 'empty and harmless',
+    message: 'Your reward points balance is 1200.',
+    expectedIds: [],
+    mustNotFind: ['prize'],
+    rationale: 'A points balance is not an unexpected prize claim.',
+  },
+  {
+    id: 'isolated-bangla-today',
+    category: 'empty and harmless',
+    message: 'আজই দেখা হবে, ভালো থেকো।',
+    expectedIds: [],
+    mustNotFind: ['urgency'],
+    rationale: 'The word আজই in ordinary conversation is not coercive urgency.',
+  },
+  {
+    id: 'urgent-care-clinic',
+    category: 'empty and harmless',
+    message: 'The urgent care clinic opens at noon.',
+    expectedIds: [],
+    mustNotFind: ['urgency'],
+    rationale: 'Urgent care names a medical service, not pressure on the recipient.',
+  },
+  {
+    id: 'urgent-matter-no-request',
+    category: 'empty and harmless',
+    message: 'The matter is urgent, but no action is needed.',
+    expectedIds: [],
+    mustNotFind: ['urgency'],
+    rationale: 'A description of urgency without a pressured action is not enough.',
+  },
+  {
+    id: 'ordinary-immediate-action',
+    category: 'empty and harmless',
+    message: 'I immediately called the clinic yesterday.',
+    expectedIds: [],
+    mustNotFind: ['urgency'],
+    rationale: 'A past action described as immediate is not pressure on the recipient.',
+  },
+  {
+    id: 'ordinary-right-away',
+    category: 'empty and harmless',
+    message: 'We will meet right away for lunch.',
+    expectedIds: [],
+    mustNotFind: ['urgency'],
+    rationale: 'A casual plan to meet is not a pressured request.',
+  },
+  {
+    id: 'ordinary-bangla-emergency-department',
+    category: 'empty and harmless',
+    message: 'জরুরি বিভাগে রোগী আনা হয়েছে।',
+    expectedIds: [],
+    mustNotFind: ['urgency'],
+    rationale: 'জরুরি in a medical department name is not coercive pressure.',
+  },
+  {
+    id: 'past-account-block',
+    category: 'empty and harmless',
+    message: 'The account was blocked yesterday and has since been restored.',
+    expectedIds: [],
+    mustNotFind: ['urgency'],
+    rationale: 'A resolved past event is not a threat to act immediately.',
+  },
+  {
+    id: 'lottery-news',
+    category: 'empty and harmless',
+    message: 'Lottery results were published in the newspaper.',
+    expectedIds: [],
+    mustNotFind: ['prize'],
+    rationale: 'A neutral report mentioning a lottery is not a personal claim.',
+  },
+  {
+    id: 'bangla-prize-terms',
+    category: 'empty and harmless',
+    message: 'পুরস্কারের নিয়মাবলি ও শর্তাবলি পড়ুন।',
+    expectedIds: [],
+    mustNotFind: ['prize'],
+    rationale: 'Prize-related informational wording is not a prize award.',
+  },
+  {
+    id: 'defensive-english-otp',
+    category: 'defensive wording',
+    message: 'Never share your OTP with anyone.',
+    expectedIds: [],
+    mustNotFind: ['secret'],
+    rationale: 'Advice against sharing an OTP is not a request for one.',
+  },
+  {
+    id: 'defensive-english-password',
+    category: 'defensive wording',
+    message: 'Do not send your password to anyone.',
+    expectedIds: [],
+    mustNotFind: ['secret'],
+    rationale: 'A negated instruction should not be classified as a secret request.',
+  },
+  {
+    id: 'defensive-bangla-otp',
+    category: 'defensive wording',
+    message: 'আপনার OTP শেয়ার করবেন না।',
+    expectedIds: [],
+    mustNotFind: ['secret'],
+    rationale: 'Bangla advice not to share an OTP is explicitly defensive.',
+  },
+  {
+    id: 'defensive-mixed-otp',
+    category: 'defensive wording',
+    message: 'কখনোই কারও সঙ্গে OTP শেয়ার করবেন না।',
+    expectedIds: [],
+    mustNotFind: ['secret'],
+    rationale: 'Mixed-script protective advice should remain unflagged.',
+  },
+  {
+    id: 'secret-separate-sentences',
+    category: 'defensive wording',
+    message: 'I like to share photos. My OTP is private.',
+    expectedIds: [],
+    mustNotFind: ['secret'],
+    rationale: 'The unrelated verb share and later OTP should not form one request.',
+  },
+  {
+    id: 'secret-english-share-otp',
+    category: 'authentication-secret requests',
+    message: 'Please share your OTP to keep your account active.',
+    expectedIds: ['secret-request'],
+    mustNotFind: ['urgency', 'prize'],
+    rationale: 'A direct English request to share an OTP matches the secret rule.',
+  },
+  {
+    id: 'secret-english-send-pin',
+    category: 'authentication-secret requests',
+    message: 'Send your PIN to the support agent.',
+    expectedIds: ['secret-request'],
+    mustNotFind: ['urgency', 'prize'],
+    rationale: 'A direct request to send a PIN matches the secret rule.',
+  },
+  {
+    id: 'secret-english-provide-password',
+    category: 'authentication-secret requests',
+    message: 'Provide your password to continue.',
+    expectedIds: ['secret-request'],
+    mustNotFind: ['urgency', 'prize'],
+    rationale: 'A direct password request matches the secret rule.',
+  },
+  {
+    id: 'secret-english-enter-verification-code',
+    category: 'authentication-secret requests',
+    message: 'Enter your verification code to continue.',
+    expectedIds: ['secret-request'],
+    mustNotFind: ['urgency', 'prize'],
+    rationale: 'Entering a verification code at a request matches the secret rule.',
+  },
+  {
+    id: 'secret-english-reply-security-code',
+    category: 'authentication-secret requests',
+    message: 'Reply with your security code.',
+    expectedIds: ['secret-request'],
+    mustNotFind: ['urgency', 'prize'],
+    rationale: 'Replying with a security code matches the secret rule.',
+  },
+  {
+    id: 'secret-english-confirm-one-time-code',
+    category: 'authentication-secret requests',
+    message: 'Please confirm your one-time code.',
+    expectedIds: ['secret-request'],
+    mustNotFind: ['urgency', 'prize'],
+    rationale: 'A request to confirm a one-time code matches the secret rule.',
+  },
+  {
+    id: 'secret-bangla-otp',
+    category: 'authentication-secret requests',
+    message: 'আপনার OTP পাঠান।',
+    expectedIds: ['secret-request'],
+    mustNotFind: ['urgency', 'prize'],
+    rationale:
+      'An OTP followed by the Bangla verb পাঠান matches the mixed-language rule.',
+  },
+  {
+    id: 'secret-bangla-pin',
+    category: 'authentication-secret requests',
+    message: 'আপনার পিন দিন।',
+    expectedIds: ['secret-request'],
+    mustNotFind: ['urgency', 'prize'],
+    rationale: 'A Bangla PIN request matches the native-script secret rule.',
+  },
+  {
+    id: 'secret-bangla-password',
+    category: 'authentication-secret requests',
+    message: 'আপনার পাসওয়ার্ড দিন।',
+    expectedIds: ['secret-request'],
+    mustNotFind: ['urgency', 'prize'],
+    rationale: 'A Bangla password request matches the native-script secret rule.',
+  },
+  {
+    id: 'secret-bangla-verification-code',
+    category: 'authentication-secret requests',
+    message: 'ভেরিফিকেশন কোড শেয়ার করুন।',
+    expectedIds: ['secret-request'],
+    mustNotFind: ['urgency', 'prize'],
+    rationale: 'A Bangla request to share a verification code matches the rule.',
+  },
+  {
+    id: 'secret-mixed-verb-otp',
+    category: 'authentication-secret requests',
+    message: 'Share করুন আপনার OTP।',
+    expectedIds: ['secret-request'],
+    mustNotFind: ['urgency', 'prize'],
+    rationale: 'An English request verb with Bangla grammar and OTP is supported.',
+  },
+  {
+    id: 'secret-mixed-pin',
+    category: 'authentication-secret requests',
+    message: 'PIN ta পাঠান।',
+    expectedIds: ['secret-request'],
+    mustNotFind: ['urgency', 'prize'],
+    rationale: 'A Latin-script PIN with a Bangla request verb is supported.',
+  },
+  {
+    id: 'urgency-act-now',
+    category: 'urgency and pressure',
+    message: 'Act now or your account will be blocked.',
+    expectedIds: ['urgent-pressure'],
+    mustNotFind: ['secret', 'prize'],
+    rationale: 'The explicit English act-now pressure matches the urgency rule.',
+  },
+  {
+    id: 'urgency-labelled-action',
+    category: 'urgency and pressure',
+    message: 'URGENT: confirm your account now.',
+    expectedIds: ['urgent-pressure'],
+    mustNotFind: ['secret', 'prize'],
+    rationale: 'An urgent-labelled instruction to act matches the pressure rule.',
+  },
+  {
+    id: 'urgency-account-blocked',
+    category: 'urgency and pressure',
+    message: 'Your account will be suspended within 5 minutes.',
+    expectedIds: ['urgent-pressure'],
+    mustNotFind: ['secret', 'prize'],
+    rationale: 'An account suspension threat with a short deadline matches the rule.',
+  },
+  {
+    id: 'urgency-bangla-action',
+    category: 'urgency and pressure',
+    message: 'এখনই OTP পাঠান।',
+    expectedIds: ['secret-request', 'urgent-pressure'],
+    mustNotFind: ['prize'],
+    rationale: 'The message contains both an OTP request and immediate pressure.',
+  },
+  {
+    id: 'urgency-bangla-consequence',
+    category: 'urgency and pressure',
+    message: 'এখন না করলে আপনার অ্যাকাউন্ট বন্ধ হয়ে যাবে।',
+    expectedIds: ['urgent-pressure'],
+    mustNotFind: ['secret', 'prize'],
+    rationale:
+      'A conditional account-closure threat is coercive, but not a secret request.',
+  },
+  {
+    id: 'urgency-english-deadline',
+    category: 'urgency and pressure',
+    message: 'Complete this within 10 minutes to prevent suspension.',
+    expectedIds: ['urgent-pressure'],
+    mustNotFind: ['secret', 'prize'],
+    rationale: 'A narrow time limit with a threatened consequence is pressure.',
+  },
+  {
+    id: 'prize-english-won',
+    category: 'prize and money claims',
+    message: 'You have won a cash prize.',
+    expectedIds: ['prize-claim'],
+    mustNotFind: ['secret', 'urgency'],
+    rationale: 'A direct personal prize claim matches the prize rule.',
+  },
+  {
+    id: 'prize-english-claim-reward',
+    category: 'prize and money claims',
+    message: 'Claim your reward now.',
+    expectedIds: ['prize-claim'],
+    mustNotFind: ['secret'],
+    rationale: 'A personal instruction to claim a reward matches the rule.',
+  },
+  {
+    id: 'prize-english-selected',
+    category: 'prize and money claims',
+    message: 'You were selected as a winner.',
+    expectedIds: ['prize-claim'],
+    mustNotFind: ['secret', 'urgency'],
+    rationale: 'A personal winner-selection claim matches the rule.',
+  },
+  {
+    id: 'prize-bangla-money',
+    category: 'prize and money claims',
+    message: 'অভিনন্দন, আপনি ৫০,০০০ টাকা জিতেছেন!',
+    expectedIds: ['prize-claim'],
+    mustNotFind: ['secret', 'urgency'],
+    rationale: 'A Bangla personal claim of winning money matches the rule.',
+  },
+  {
+    id: 'prize-bangla-reward',
+    category: 'prize and money claims',
+    message: 'পুরস্কার পেতে লিংকে ক্লিক করুন।',
+    expectedIds: ['prize-claim'],
+    mustNotFind: ['secret'],
+    rationale: 'A Bangla instruction to claim a prize matches the rule.',
+  },
+  {
+    id: 'prize-bangla-lottery-winner',
+    category: 'prize and money claims',
+    message: 'আপনি লটারিতে বিজয়ী, পুরস্কার দাবি করুন।',
+    expectedIds: ['prize-claim'],
+    mustNotFind: ['secret'],
+    rationale: 'A personal lottery-winner and claim statement matches the rule.',
+  },
+  {
+    id: 'combined-secret-urgency-prize',
+    category: 'multiple warning signs',
+    message: 'Act now! Share your OTP to claim your prize.',
+    expectedIds: ['secret-request', 'urgent-pressure', 'prize-claim'],
+    mustNotFind: [],
+    rationale: 'Independent request, pressure, and prize patterns co-occur.',
+  },
+  {
+    id: 'combined-bangla-secret-urgency',
+    category: 'multiple warning signs',
+    message: 'এখনই আপনার PIN দিন, না হলে অ্যাকাউন্ট বন্ধ হবে।',
+    expectedIds: ['secret-request', 'urgent-pressure'],
+    mustNotFind: ['prize'],
+    rationale: 'The message combines a PIN request with an account-closure threat.',
+  },
+  {
+    id: 'combined-prize-link',
+    category: 'multiple warning signs',
+    message: 'You won a prize; claim it at https://example.test/claim',
+    expectedIds: ['prize-claim', 'link-1'],
+    mustNotFind: ['secret', 'urgency', 'http'],
+    rationale: 'A prize claim and a separate HTTPS link are both observed.',
+  },
+  {
+    id: 'link-presence-only',
+    category: 'informational links',
+    message: 'Read more at https://example.test/news.',
+    expectedIds: ['link-1'],
+    mustNotFind: ['secret', 'urgency', 'prize', 'http'],
+    rationale: 'HTTPS link presence alone is informational and not a fraud verdict.',
+  },
+  {
+    id: 'link-www-only',
+    category: 'informational links',
+    message: 'Visit www.example.test for the schedule.',
+    expectedIds: ['link-1'],
+    mustNotFind: ['secret', 'urgency', 'prize', 'http'],
+    rationale:
+      'A www link is recognised without adding unobserved structural warnings.',
+  },
+  {
+    id: 'url-http',
+    category: 'URL structure',
+    message: 'Details: http://example.test/info',
+    expectedIds: ['link-1', 'link-1-http'],
+    mustNotFind: ['secret', 'urgency', 'prize', 'credentials', 'ip', 'punycode'],
+    rationale: 'HTTP is observed structurally; the host has no other tested property.',
+  },
+  {
+    id: 'url-embedded-credentials',
+    category: 'URL structure',
+    message: 'https://user:pass@example.test/login',
+    expectedIds: ['link-1', 'link-1-credentials'],
+    mustNotFind: ['secret', 'urgency', 'prize', 'http', 'ip', 'punycode'],
+    rationale: 'The URL parser exposes user information in the URL authority.',
+  },
+  {
+    id: 'url-ipv4',
+    category: 'URL structure',
+    message: 'https://192.0.2.1/login',
+    expectedIds: ['link-1', 'link-1-ip'],
+    mustNotFind: ['secret', 'urgency', 'prize', 'http', 'credentials', 'punycode'],
+    rationale: 'The parsed host is an IPv4 literal, not a reputation judgment.',
+  },
+  {
+    id: 'url-ipv6',
+    category: 'URL structure',
+    message: 'https://[2001:db8::1]/login',
+    expectedIds: ['link-1', 'link-1-ip'],
+    mustNotFind: ['secret', 'urgency', 'prize', 'http', 'credentials', 'punycode'],
+    rationale: 'The parsed host is an IPv6 literal.',
+  },
+  {
+    id: 'url-punycode',
+    category: 'URL structure',
+    message: 'https://xn--e1afmkfd.example/',
+    expectedIds: ['link-1', 'link-1-punycode'],
+    mustNotFind: ['secret', 'urgency', 'prize', 'http', 'credentials', 'ip'],
+    rationale: 'The hostname contains a punycode label.',
+  },
+  {
+    id: 'url-safe-https-host',
+    category: 'URL structure',
+    message: 'https://example.test/account',
+    expectedIds: ['link-1'],
+    mustNotFind: [
+      'secret',
+      'urgency',
+      'prize',
+      'http',
+      'credentials',
+      'ip',
+      'punycode',
+    ],
+    rationale: 'HTTPS and an ordinary hostname do not support extra claims.',
+  },
+  {
+    id: 'url-invalid-ip-like-host',
+    category: 'URL structure',
+    message: 'https://999.999.999.999/login',
+    expectedIds: ['link-1'],
+    mustNotFind: ['secret', 'urgency', 'prize', 'ip'],
+    rationale: 'An invalid numeric host should not be called a valid IP literal.',
+  },
+  {
+    id: 'url-malformed-authority',
+    category: 'malformed and unusual input',
+    message: 'Notice: http://[invalid',
+    expectedIds: ['link-1'],
+    mustNotFind: [
+      'secret',
+      'urgency',
+      'prize',
+      'http',
+      'credentials',
+      'ip',
+      'punycode',
+    ],
+    rationale:
+      'Malformed URL text is retained as a link but has no parseable properties.',
+  },
+  {
+    id: 'url-trailing-punctuation',
+    category: 'malformed and unusual input',
+    message: 'Visit https://example.test/path).',
+    expectedIds: ['link-1'],
+    mustNotFind: ['secret', 'urgency', 'prize', 'http'],
+    rationale: 'Sentence punctuation is excluded from the informational URL evidence.',
+  },
+  {
+    id: 'unusual-unicode-long-input',
+    category: 'malformed and unusual input',
+    message: `Notice: ${'🛡️'.repeat(2000)} https://example.test/`,
+    expectedIds: ['link-1'],
+    mustNotFind: ['secret', 'urgency', 'prize', 'http'],
+    rationale:
+      'Long Unicode text should be handled without inventing warning patterns.',
+  },
+]
+
+describe('synthetic analyzer evaluation corpus', () => {
+  it('has unique case identifiers', () => {
+    const ids = evaluationCases.map((testCase) => testCase.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(evaluationCases.length).toBeGreaterThanOrEqual(36)
   })
 
-  it('detects English requests to share an OTP or password', () => {
-    expect(
-      analyzeMessage('Please share your OTP to keep your account active.'),
-    ).toContainEqual(
-      expect.objectContaining({
-        kind: 'secret',
-        evidence: 'share your OTP',
-      }),
-    )
-    expect(
-      analyzeMessage('Enter your password to verify your account.'),
-    ).toContainEqual(expect.objectContaining({ kind: 'secret' }))
-    expect(
-      analyzeMessage('Reply with your verification code to continue.'),
-    ).toContainEqual(expect.objectContaining({ kind: 'secret' }))
-    expect(analyzeMessage('Send your PIN to the support agent.')).toContainEqual(
-      expect.objectContaining({ kind: 'secret' }),
-    )
-  })
+  it.each(evaluationCases)(
+    '$id [$category]: $rationale',
+    ({ message, expectedIds, mustNotFind }) => {
+      const findings = analyzeMessage(message)
+      const actualIds = findings.map((finding) => finding.id)
 
-  it('detects Bangla and mixed-language requests for verification secrets', () => {
-    expect(analyzeMessage('আপনার OTP এখনই পাঠান।')).toContainEqual(
-      expect.objectContaining({ kind: 'secret', evidence: 'OTP এখনই পাঠান' }),
-    )
-    expect(analyzeMessage('আপনার পিন দিন।')).toContainEqual(
-      expect.objectContaining({ kind: 'secret' }),
-    )
-    expect(analyzeMessage('ভেরিফিকেশন কোড শেয়ার করুন।')).toContainEqual(
-      expect.objectContaining({ kind: 'secret' }),
-    )
-    expect(analyzeMessage('আপনার পাসওয়ার্ড দিন।')).toContainEqual(
-      expect.objectContaining({ kind: 'secret' }),
-    )
-    expect(analyzeMessage('Share করুন আপনার OTP।')).toContainEqual(
-      expect.objectContaining({ kind: 'secret' }),
-    )
-  })
-
-  it('does not mistake explicit advice against sharing secrets for a request', () => {
-    expect(analyzeMessage('Never share your OTP with anyone.')).toEqual([])
-    expect(analyzeMessage('Do not send your password to anyone.')).toEqual([])
-    expect(analyzeMessage('আপনার OTP শেয়ার করবেন না।')).toEqual([])
-  })
-
-  it('detects urgency and prize or money claims independently', () => {
-    const urgent = analyzeMessage('Act now or your account will be blocked.')
-    expect(urgent).toContainEqual(expect.objectContaining({ kind: 'urgency' }))
-    expect(urgent).toContainEqual(
-      expect.objectContaining({ kind: 'urgency', evidence: 'Act now' }),
-    )
-    expect(
-      analyzeMessage('আপনার অ্যাকাউন্ট এখনই বন্ধ হয়ে যাবে, দ্রুত OTP দিন।').map(
-        (finding) => finding.kind,
-      ),
-    ).toEqual(['secret', 'urgency'])
-    expect(analyzeMessage('আজই দেখা হবে, ভালো থেকো।')).toEqual([])
-
-    expect(analyzeMessage('অভিনন্দন, আপনি ৫০,০০০ টাকা জিতেছেন!')).toContainEqual(
-      expect.objectContaining({ kind: 'prize' }),
-    )
-    expect(analyzeMessage('You have won a cash prize.')).toContainEqual(
-      expect.objectContaining({ kind: 'prize' }),
-    )
-    expect(analyzeMessage('Your reward points balance is 1200.')).not.toContainEqual(
-      expect.objectContaining({ kind: 'prize' }),
-    )
-    expect(
-      analyzeMessage('Lottery results were published in the newspaper.'),
-    ).not.toContainEqual(expect.objectContaining({ kind: 'prize' }))
-    expect(analyzeMessage('পুরস্কারের নিয়মাবলি ও শর্তাবলি পড়ুন।')).not.toContainEqual(
-      expect.objectContaining({ kind: 'prize' }),
-    )
-  })
-
-  it('returns all independent findings in one message', () => {
-    expect(
-      analyzeMessage(
-        'Act now! Share your OTP to claim your prize at http://example.com',
-      ).map((finding) => finding.kind),
-    ).toEqual(['secret', 'urgency', 'prize', 'link', 'http'])
-  })
-
-  it('treats link presence as informational, not as proof of fraud', () => {
-    const findings = analyzeMessage('Read more at https://example.com/news.')
-    expect(findings).toEqual([
-      expect.objectContaining({
-        kind: 'link',
-        evidence: 'https://example.com/news',
-      }),
-    ])
-    expect(findings.some((finding) => finding.kind === 'secret')).toBe(false)
-    expect(findings.some((finding) => finding.kind === 'urgency')).toBe(false)
-    expect(findings.some((finding) => finding.kind === 'prize')).toBe(false)
-  })
-
-  it('identifies each supported URL structure characteristic locally', () => {
-    expect(analyzeMessage('http://example.com').map((finding) => finding.kind)).toEqual(
-      ['link', 'http'],
-    )
-    expect(
-      analyzeMessage('https://user:pass@example.com').map((finding) => finding.kind),
-    ).toEqual(['link', 'credentials'])
-    expect(
-      analyzeMessage('https://192.0.2.1/login').map((finding) => finding.kind),
-    ).toEqual(['link', 'ip'])
-    expect(
-      analyzeMessage('https://[2001:db8::1]/login').map((finding) => finding.kind),
-    ).toEqual(['link', 'ip'])
-    expect(
-      analyzeMessage('https://xn--e1afmkfd.example/').map((finding) => finding.kind),
-    ).toEqual(['link', 'punycode'])
-    expect(
-      analyzeMessage('https://example.com').map((finding) => finding.kind),
-    ).toEqual(['link'])
-  })
-
-  it('handles malformed links, unusual Unicode, and long input without throwing', () => {
-    expect(() =>
-      analyzeMessage(`Notice: http://[invalid ${'🛡️'.repeat(2000)} \u0000`),
-    ).not.toThrow()
-    expect(
-      analyzeMessage('Notice: http://[invalid').map((finding) => finding.kind),
-    ).toEqual(['link'])
-  })
+      expect(actualIds).toEqual(expectedIds)
+      for (const kind of mustNotFind) {
+        expect(findings.map((finding) => finding.kind)).not.toContain(kind)
+      }
+      for (const finding of findings) {
+        expect(message).toContain(finding.evidence)
+      }
+    },
+  )
 })

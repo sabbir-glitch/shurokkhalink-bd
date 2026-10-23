@@ -18,6 +18,50 @@ endorsement.
 - Offers a complete English/Bangla interface, with Bangla selected by default,
   and synthetic examples that can be loaded into the analyzer.
 
+## Analyzer rules and explanations
+
+`src/lib/analyzeMessage.ts` applies local regular expressions and the browser's
+URL parser. Findings are deterministic indicators, not a verdict:
+
+- **Secret request (`secret-request`)** — looks for request verbs such as
+  “send”, “share”, “enter”, or “verify” near OTP, PIN, password, passcode, or
+  verification/security-code wording. It supports a limited set of Bangla
+  terms and English/Bangla combinations. Clear negation and sentence
+  boundaries are checked to avoid treating protective advice or unrelated
+  sentences as a request. The interface explains that sharing authentication
+  secrets can put an account or money at risk and advises verifying through a
+  known official channel.
+- **Urgency (`urgent-pressure`)** — looks for English cues such as “act now”,
+  a short stated time limit, a future blocked/suspended/closed consequence,
+  explicit urgent labels, or an action paired with “immediately” or “right
+  away”. Bangla cues include a conditional failure to act, an immediate action
+  request, urgency paired with an action, and an account/service closure or
+  block consequence. It explains that pressure can reduce time to verify and
+  advises pausing and checking through a known channel. A bare use of words
+  such as “urgent” does not trigger this rule.
+- **Prize claim (`prize-claim`)** — looks for personal prize/winner/claim
+  phrases, including supported Bangla wording, rather than a prize-related
+  word alone. It advises against paying fees or sharing information and
+  suggests independent official verification.
+- **Link presence (`link-N`)** — recognises text beginning with `http://`,
+  `https://`, or `www.`. This is informational only: a link alone is not
+  evidence of fraud, and the tool does not open or check the destination.
+- **URL structure (`link-N-http`, `-credentials`, `-ip`, `-punycode`)** —
+  locally describes HTTP protocol, user information in the URL authority,
+  IPv4/IPv6 literal hosts, or a punycode hostname label. These observable
+  properties do not establish intent, reputation, site identity, or safety.
+
+These are deliberately narrow text patterns, not language understanding.
+Negation handling covers only specific forms; unusual grammar, spelling,
+context, scripts, and punctuation can still be missed or misunderstood. A
+finding may be a false positive, and lack of a finding is not reassurance.
+The analyzer does not assign fraud scores or probabilities, and it does not
+add warning categories beyond the listed local rules.
+`src/lib/analyzeMessage.test.ts` keeps one table-driven synthetic evaluation
+corpus: each case has an ID, category, message, exact expected finding IDs,
+explicit excluded finding kinds, and a rationale. It tests intended analyzer
+behaviour, not real-world fraud accuracy.
+
 ## Limitations and safety
 
 This is a small, deterministic, rule-based checker. A warning sign is not proof

@@ -11,7 +11,7 @@ const secretRequestPattern =
   /(?:\b(?:send|share|tell|provide|give|reply with|enter|submit|confirm|verify)\b.{0,55}\b(?:otp|pin|password|passcode|verification code|security code|one[- ]time code)\b|\b(?:otp|pin|password|passcode|verification code|security code|one[- ]time code)\b.{0,55}\b(?:send|share|tell|provide|give|reply|enter|submit|confirm|verify)\b|\b(?:otp|pin|password|passcode|verification code|security code|one[- ]time code)\b.{0,45}(?:পাঠান|দিন|শেয়ার|শেয়ার|বলুন|জানান|দিতে|লিখুন|দরকার|চাই)|(?:পাঠান|দিন|শেয়ার|শেয়ার|বলুন|জানান|দিতে|লিখুন|দরকার|চাই).{0,45}\b(?:otp|pin|password|passcode|verification code|security code|one[- ]time code)\b|(?:ওটিপি|ও টি পি|পিন|পাসওয়ার্ড|পাসওয়ার্ড|যাচাইকরণ কোড|ভেরিফিকেশন কোড|গোপন কোড).{0,45}(?:পাঠান|দিন|শেয়ার|শেয়ার|বলুন|জানান|দিতে|লিখুন|দরকার|চাই)|(?:পাঠান|দিন|শেয়ার|শেয়ার|বলুন|জানান|দিতে|লিখুন|দরকার|চাই).{0,45}(?:ওটিপি|ও টি পি|পিন|পাসওয়ার্ড|পাসওয়ার্ড|যাচাইকরণ কোড|ভেরিফিকেশন কোড|গোপন কোড))/iu
 
 const urgencyPattern =
-  /\b(?:act now|immediately|urgent(?:ly)?|right away|within \d+ (?:minutes?|hours?)|account.{0,20}(?:blocked|suspended|closed)|will be (?:blocked|suspended|closed))\b|অবিলম্বে|জরুরি|দ্রুত করুন|এখন না করলে|এখনই.{0,15}(?:করুন|পাঠান|দিন|ক্লিক|যোগাযোগ|জমা|দাবি|না করলে)|আজই.{0,15}(?:করুন|পাঠান|দিন|ক্লিক|জমা|দাবি|না করলে|শেষ)|বন্ধ হয়ে যাবে|বন্ধ হয়ে যাবে|ব্লক হবে|অ্যাকাউন্ট বন্ধ/iu
+  /\b(?:act now|within \d+ (?:minutes?|hours?)|(?:will be|may be|is about to be)\s+(?:blocked|suspended|closed))\b|\b(?:act|respond|reply|complete|verify|send|share|submit|pay|click|confirm|provide|update)\b[^.!?।\n]{0,20}\b(?:immediately|urgently|right away)\b|\b(?:immediately|right away)\s+(?:act|respond|reply|complete|verify|send|share|submit|pay|click|confirm|provide|update)\b|\burgent(?:ly)?(?=\s*(?:[:!—-]|\b(?:action|response|verification|payment|deadline|required)\b))|(?:অবিলম্বে|জরুরি)\s*(?::|!|।)|(?:অবিলম্বে|জরুরি)[^.!?।\n]{0,15}(?:করুন|পাঠান|দিন|ক্লিক|যোগাযোগ|জমা|দাবি|শেষ|যাচাই)|দ্রুত করুন|এখন না করলে|এখনই.{0,15}(?:করুন|পাঠান|দিন|ক্লিক|যোগাযোগ|জমা|দাবি|না করলে)|আজই.{0,15}(?:করুন|পাঠান|দিন|ক্লিক|জমা|দাবি|না করলে|শেষ)|(?:অ্যাকাউন্ট|সেবা|সিম|কার্ড).{0,15}(?:বন্ধ হয়ে যাবে|বন্ধ হয়ে যাবে|ব্লক হবে)|(?:বন্ধ হয়ে যাবে|বন্ধ হয়ে যাবে|ব্লক হবে).{0,15}(?:অ্যাকাউন্ট|সেবা|সিম|কার্ড)/iu
 
 const prizePattern =
   /\b(?:you (?:have )?won|you(?:'re| are) (?:a )?winner|selected as (?:a )?winner|claim (?:your )?(?:money|reward|prize)|free (?:gift|money)|cash prize|unclaimed funds|win (?:a |the )?(?:prize|lottery|cash|money)|(?:prize|reward|lottery).{0,35}(?:claim|winner|won|selected))\b|অভিনন্দন.{0,35}(?:জিতেছেন|পুরস্কার|লটারি)|(?:জিতেছেন|জিতেছ|বিজয়ী|বিজয়ী).{0,25}(?:টাকা|পুরস্কার|লটারি|উপহার)|(?:টাকা|পুরস্কার|লটারি|উপহার).{0,30}(?:জিতেছেন|জিতেছ|দাবি|পেতে|পেয়েছেন|পেয়েছেন)|(?:পুরস্কার|লটারি).{0,20}(?:দাবি|জিত|পেতে|ক্লিক)/iu
@@ -36,12 +36,15 @@ function findSecretRequest(text: string): string | undefined {
     const followingText = text.slice(end, end + 12)
     const negatedBefore =
       /(?:\b(?:do not|don't|never)\b|কখনোই?)[^.!?।\n]{0,35}$/iu.test(precedingText)
+    const crossesSentenceBoundary = /[.!?।\n]/u.test(match[0])
     const negatedAfter =
       /^\s*(?:not\b|না(?=[\s।.!?,;:]|$)|(?:করবেন|দেবেন|পাঠাবেন|জানাবেন|লিখবেন)\s+না(?=[\s।.!?,;:]|$))/iu.test(
         followingText,
       )
 
-    if (!negatedBefore && !negatedAfter) return match[0]
+    if (!crossesSentenceBoundary && !negatedBefore && !negatedAfter) {
+      return match[0]
+    }
   }
 
   return undefined

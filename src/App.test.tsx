@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -76,6 +76,93 @@ describe('App', () => {
     ).not.toBeInTheDocument()
     expect(
       screen.getByText('বিশ্লেষণ শুরু করতে উপরের বাক্সে একটি বার্তা লিখুন।'),
+    ).toBeInTheDocument()
+  })
+
+  it('shows category-matched explanations and safer actions for each finding', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'English' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Suspicious message' }), {
+      target: {
+        value:
+          'Act now! Share your OTP to claim your prize at http://example.test/claim',
+      },
+    })
+    await user.click(screen.getByRole('button', { name: /Analyse message/ }))
+
+    expect(
+      screen.getByRole('heading', {
+        name: 'A request for private verification information',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Pressure to act urgently' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'A prize or unexpected money claim' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'The message contains a link' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Do not share codes or passwords. Verify the request through a known official channel for the organisation.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Take your time. Verify the information through a known official channel outside the message.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Do not pay a fee or share information. Check independently with the organisation through an official source.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/A link alone is not evidence of fraud/),
+    ).toBeInTheDocument()
+  })
+
+  it('shows explanations specific to each observed URL structure', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'English' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Suspicious message' }), {
+      target: {
+        value: 'http://user:pass@192.0.2.1/login https://xn--e1afmkfd.example/',
+      },
+    })
+    await user.click(screen.getByRole('button', { name: /Analyse message/ }))
+
+    expect(
+      screen.getByRole('heading', { name: 'The link uses HTTP' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'The link contains user information' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        name: 'The link uses an IP address as its host',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'The link host contains punycode' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/HTTP does not provide the same encryption as HTTPS/),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/A URL containing a username or password is unusual/),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/An IP address in a website link is not proof of fraud/),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/Punycode represents domains with non-Latin characters/),
     ).toBeInTheDocument()
   })
 
