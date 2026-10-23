@@ -1,130 +1,50 @@
-# Static online demonstration deployment
+# ShurokkhaLink BD — deployment notes
 
-## Recommendation
+## Current hosted demonstration
 
-Use **Cloudflare Pages with Git integration** for this Vite frontend. It can
-build the existing project and host the resulting static files over HTTPS,
-without a backend or a new application dependency. A build produces `dist/`;
-`public/_headers` is copied into that directory for Pages to apply as HTTP
-response headers.
+- Public URL: https://shurokkhalink-bd.sabbirahamedmail.workers.dev/
+- Git repository: https://github.com/sabbir-glitch/shurokkhalink-bd
+- Production branch: `main`
+- Build command: `npm run build`
+- Deploy command in Cloudflare: `npx wrangler deploy`
+- Application build output: `dist/`
 
-Official setup references:
+The current project was created through the Cloudflare Workers Git-connected workflow. These instructions refer to that Worker deployment, not a Cloudflare Pages project.
 
-- [Cloudflare Pages build configuration](https://developers.cloudflare.com/pages/configuration/build-configuration/)
-- [Cloudflare Pages build image and Node.js versions](https://developers.cloudflare.com/pages/configuration/build-image/)
-- [Cloudflare Pages Git integration](https://developers.cloudflare.com/pages/get-started/git-integration/)
-- [Cloudflare Pages headers](https://developers.cloudflare.com/pages/configuration/headers/)
-- [Cloudflare Pages serving and SPA behavior](https://developers.cloudflare.com/pages/configuration/serving-pages/)
-- [Cloudflare HSTS settings](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/http-strict-transport-security/)
+## Current deployment workflow
 
-## Prepare the source
+1. Make and review local changes.
+2. Run `npm run test:run`, `npm run lint`, and `npm run build` locally.
+3. Check `git status --short` and review the exact file changes.
+4. Commit the intended changes and push to `main`:
 
-1. Review the local changes and run the project checks below.
-2. From your own normal Git workflow, commit and push the reviewed project to
-   the Git provider/repository you choose. No commit or push is performed by
-   this guide or by this task.
-3. Keep the repository root as the Pages root directory. No environment
-   secrets, API keys, or application variables are required.
+   ```powershell
+   git add <reviewed-files>
+   git diff --cached --check
+   git diff --cached --stat
+   git commit -m "Describe the change"
+   git push origin main
+   ```
 
-## Create the Pages project in the dashboard
+5. Confirm that the GitHub Actions CI workflow passes.
+6. Open Cloudflare Workers & Pages, select `shurokkhalink-bd`, and inspect the build/deployment history. Confirm that the new deployment completed successfully.
+7. Open the live URL and test the changed functionality.
 
-1. Sign in to Cloudflare and open **Workers & Pages**.
-2. Choose **Create application** / **Create project**, then select **Pages**
-   and **Connect to Git**.
-3. Connect the Git provider, authorize the repository, and select the
-   ShurokkhaLink BD repository.
-4. Set the build configuration:
+Do not run `git add -A` blindly when unrelated or unexpected files are present. Do not commit `.env` files, secrets, `node_modules`, or generated `dist/` files.
 
-   | Setting                | Value                                       |
-   | ---------------------- | ------------------------------------------- |
-   | Framework preset       | Vite (or React/Vite)                        |
-   | Production branch      | The branch you pushed and intend to publish |
-   | Root directory         | `/` (repository root)                       |
-   | Build command          | `npm run build`                             |
-   | Build output directory | `dist`                                      |
+## Build configuration
 
-5. Set `NODE_VERSION` to `24.22.1` for both production and preview builds if
-   the dashboard provides separate environments. `.nvmrc` already pins this
-   version locally; the explicit variable avoids relying on the build image's
-   default.
-6. Save and deploy. Cloudflare Pages should install dependencies from the
-   committed lockfile, run the build command, and publish only `dist/`.
+The Cloudflare dashboard currently shows the GitHub repository `sabbir-glitch/shurokkhalink-bd`, production branch `main`, build command `npm run build`, and deploy command `npx wrangler deploy`. The project root is the repository root. No application API keys or environment variables are required for the current frontend.
 
-No `wrangler.toml`, server-side function, API, SPA rewrite, or redirect file is
-needed for the current root-only application. Pages serves the SPA root for
-unmatched paths when there is no top-level `404.html`; if client-side routes
-are added later, verify the behavior again.
+`public/_headers` is copied into `dist/_headers` by the Vite build. The live response was checked on 24 October 2026 and included Content Security Policy, Permissions Policy, Referrer Policy, `X-Content-Type-Options`, and `X-Frame-Options`. Cloudflare Workers documents custom `_headers` rules for static-asset responses; changes to Worker-generated responses may need headers set in Worker code instead. See the official [Cloudflare Workers headers documentation](https://developers.cloudflare.com/workers/static-assets/headers/).
 
-For a one-off manual demo, Pages also offers Direct Upload of a prebuilt
-`dist/` directory. Cloudflare documents that Direct Upload projects cannot
-later be switched to Git integration; choose Git integration if you want
-repeatable builds from a branch.
+## Zero-cost operating rules
 
-## Headers and hosting caveats
+- Keep the project on the available free GitHub and Cloudflare offerings.
+- Use the supplied `workers.dev` hostname; no custom domain is needed.
+- Do not enable paid services, add paid integrations, or buy a domain without checking the cost and obtaining explicit approval.
+- The current application is a static frontend. Do not add Workers API code, databases, telemetry, external AI, or other services unless there is a clear need and the costs and privacy impact have been reviewed first.
 
-`public/_headers` asks Pages to apply a restrictive Content Security Policy:
-same-origin scripts/styles/assets, no network connections from the app, no
-forms submitted to a destination, and no framing. It also disallows camera,
-microphone, and geolocation access and sets common response hardening headers.
-This policy is appropriate to the current bundled app; if you later add
-external fonts, scripts, APIs, or other resources, review and deliberately
-update the policy rather than broadly relaxing it.
+## Important limitations
 
-Pages `_headers` rules apply to static asset responses. They do not set headers
-on Pages Functions responses; this project has no Functions. Cloudflare also
-documents default headers such as `Access-Control-Allow-Origin: *` for static
-assets. Those assets are public application files, but inspect the actual
-deployed response headers before release.
-
-HTTPS is provided for the `pages.dev` hostname. Do not enable HSTS preload or
-`includeSubDomains` casually. For a custom domain, first verify certificate
-issuance, HTTPS redirects, all intended subdomains, and the ability to keep
-HTTPS available. Configure HSTS at the Cloudflare zone only after confirming
-its scope and recovery implications. HSTS is intentionally not hard-coded in
-the Pages `_headers` file.
-
-This app does not submit analyzed text or URLs. Visitors still make ordinary
-network requests to download the site, and the hosting provider necessarily
-handles delivery requests and associated connection metadata. Review the
-provider's current privacy, logging, retention, account-access, and domain
-configuration before publishing. Application source inspection is not a
-guarantee about browser extensions, provider infrastructure, or the deployed
-runtime.
-
-## Verify the deployed demonstration
-
-After deployment:
-
-1. Open the HTTPS deployment URL in a private browser window and confirm that
-   the Bangla-first app loads without mixed-content or CSP errors.
-2. Check the OTP, prize, and HTTPS-link examples in Bangla and English. The
-   link example should show link presence as informational, not a fraud
-   verdict.
-3. Edit analyzed input and confirm old results disappear; clear the form and
-   confirm both input and results are gone.
-4. Inspect the browser Network panel while analyzing each sample. Message
-   analysis should make no request containing the message or submitted URL.
-   Requests for the site’s own HTML, JS, CSS, and icon assets are expected.
-5. Inspect the deployed HTML, JS, CSS, and favicon response headers. Confirm
-   the CSP and other headers from `public/_headers` are present and that no
-   unexpected external scripts, fonts, analytics, or API destinations load.
-6. Exercise keyboard navigation and visible focus. Test the deployed page at
-   narrow mobile widths, including 320–375 CSS pixels. If possible, also test
-   with actual screen-reader software; automated component tests do not replace
-   this.
-
-## Project checks before publishing
-
-```sh
-npm run test:run
-npm run build
-npm run lint
-npm run format:check
-```
-
-This deployment path creates a shareable static demonstration; it does not
-make the rule-based analyzer a fraud detector, verify senders or destinations,
-or certify links as safe. Complete the outstanding manual, production-header,
-privacy, operational-ownership, and local-language reviews in
-[RELEASE-READINESS.md](./RELEASE-READINESS.md) before treating the site as a
-public production service.
+A successful deployment confirms that the build/deploy job completed; it does not certify the application as secure or establish real-world phishing-detection accuracy. Recheck the live page, network behavior, response headers, and relevant browser/accessibility behavior after material changes.
