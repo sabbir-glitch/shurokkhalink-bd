@@ -36,6 +36,11 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { name: 'Unsure about a message?' }),
     ).toBeInTheDocument()
+    expect(document.documentElement).toHaveAttribute('lang', 'en')
+    expect(screen.getByRole('group', { name: 'Choose language' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Go to the ShurokkhaLink BD home page' }),
+    ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Analyse message' }))
     expect(screen.getByRole('alert')).toHaveTextContent(
       'Add some message text before analysing.',
@@ -68,6 +73,7 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { name: 'গোপন যাচাইকরণ তথ্য চাওয়া হয়েছে' }),
     ).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('2টি লক্ষণ পাওয়া গেছে।')
 
     await user.click(screen.getByRole('button', { name: 'মুছে ফেলুন' }))
     expect(input).toHaveValue('')
@@ -77,6 +83,59 @@ describe('App', () => {
     expect(
       screen.getByText('বিশ্লেষণ শুরু করতে উপরের বাক্সে একটি বার্তা লিখুন।'),
     ).toBeInTheDocument()
+  })
+
+  it('does not leave findings attached to text after the user edits it', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const input = screen.getByRole('textbox', { name: 'সন্দেহজনক বার্তা' })
+
+    await user.type(input, 'আপনার OTP পাঠান')
+    await user.click(screen.getByRole('button', { name: /বার্তা বিশ্লেষণ করুন/ }))
+    expect(
+      screen.getByRole('heading', { name: 'গোপন যাচাইকরণ তথ্য চাওয়া হয়েছে' }),
+    ).toBeInTheDocument()
+
+    fireEvent.change(input, { target: { value: 'আজ বিকেলে দেখা হবে।' } })
+
+    expect(
+      screen.queryByRole('heading', { name: 'গোপন যাচাইকরণ তথ্য চাওয়া হয়েছে' }),
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
+    expect(
+      screen.getByText('বিশ্লেষণ শুরু করতে উপরের বাক্সে একটি বার্তা লিখুন।'),
+    ).toBeInTheDocument()
+  })
+
+  it('demonstrates prize claims and link presence without calling the link proof of fraud', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'পুরস্কারের বার্তা' }))
+    await user.click(screen.getByRole('button', { name: /বার্তা বিশ্লেষণ করুন/ }))
+    expect(
+      screen.getByRole('heading', { name: 'পুরস্কার বা অপ্রত্যাশিত অর্থের দাবি' }),
+    ).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'English' }))
+    await user.click(screen.getByRole('button', { name: 'Message with a link' }))
+    expect(screen.getByRole('textbox', { name: 'Suspicious message' })).toHaveValue(
+      'Check your parcel details at https://example.com/parcel',
+    )
+    await user.click(screen.getByRole('button', { name: /Analyse message/ }))
+
+    expect(
+      screen.getByRole('heading', { name: 'The message contains a link' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/A link alone is not evidence of fraud/),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'The link uses HTTP' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'A prize or unexpected money claim' }),
+    ).not.toBeInTheDocument()
   })
 
   it('shows category-matched explanations and safer actions for each finding', async () => {

@@ -1,9 +1,9 @@
 # ShurokkhaLink BD
 
-ShurokkhaLink BD is a Bangla-first awareness tool for people in Bangladesh who
-want a second look at a suspicious SMS, chat message, email excerpt, or other
-text. The interface is not a government service and does not claim official
-endorsement.
+ShurokkhaLink BD v0.1 is a Bangla-first local awareness tool for people in
+Bangladesh who want a second look at a suspicious SMS, chat message, email
+excerpt, or other text. The interface is not a government service and does not
+claim official endorsement.
 
 ## What it does
 
@@ -77,10 +77,14 @@ message.
 
 ## Privacy
 
-Analysis uses local string processing and URL parsing in the browser. Submitted
-text stays in browser memory for the current page session; it is not sent to a
-server or external AI service, saved to browser storage, or written to logs.
-There is no telemetry, analytics, backend, or community reporting.
+The analyzer uses local string processing and URL parsing in the browser.
+Submitted text is held in React page memory while being analyzed; the
+application code does not send it to a server or external AI service, persist
+it in browser storage, or write its contents to application logs. Clearing the
+form removes the current text and results from application state. The
+application has no telemetry, analytics, backend, or community reporting.
+This describes the application code and does not make claims about browser
+extensions, the user's environment, or hosting infrastructure.
 
 ## Development
 
@@ -92,6 +96,10 @@ npm install
 npm run dev
 ```
 
+Open the local URL printed by Vite (normally `http://localhost:5173/`). For a
+short walkthrough of the three synthetic examples, language switching, and
+accurate privacy/limitation wording, see [DEMO-GUIDE.md](./DEMO-GUIDE.md).
+
 ## Checks
 
 ```sh
@@ -102,3 +110,7 @@ npm run lint       # ESLint
 npm run format     # Format project files with Prettier
 npm run format:check
 ```
+
+See [RELEASE-READINESS.md](./RELEASE-READINESS.md) for verified local
+demonstration scope, manually unverified areas, and remaining steps before a
+public production release.

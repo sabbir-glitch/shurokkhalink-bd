@@ -7,12 +7,13 @@ type Language = 'bn' | 'en'
 const copy = {
   bn: {
     languageLabel: 'ভাষা নির্বাচন',
+    homeLabel: 'ShurokkhaLink BD-এর শুরুতে যান',
     bengali: 'বাংলা',
     english: 'English',
     eyebrow: 'সচেতন থাকুন, নিরাপদে থাকুন',
     title: 'সন্দেহজনক বার্তা?',
     subtitle:
-      'বার্তার কিছু পরিচিত সতর্ক সংকেত স্থানীয়ভাবে দেখে নিন—কোনো বার্তা কোথাও পাঠানো হয় না।',
+      'বার্তার কিছু পরিচিত সতর্ক সংকেত স্থানীয়ভাবে দেখে নিন—বিশ্লেষণের জন্য আপনার লেখা সার্ভারে পাঠানো হয় না।',
     privacyShort: 'আপনার বার্তা শুধু এই ব্রাউজারেই বিশ্লেষণ করা হয়',
     analyzerTitle: 'বার্তাটি পরীক্ষা করুন',
     analyzerHint:
@@ -29,8 +30,11 @@ const copy = {
     emptyError: 'বিশ্লেষণের আগে বার্তার লেখা যোগ করুন।',
     resultTitle: 'বিশ্লেষণের ফলাফল',
     resultPrompt: 'বিশ্লেষণ শুরু করতে উপরের বাক্সে একটি বার্তা লিখুন।',
+    resultIdle: 'বিশ্লেষণ শুরু হলে ফলাফল এখানে দেখানো হবে।',
     resultFindings: (count: number) => `${count}টি লক্ষণ পাওয়া গেছে`,
     resultClear: 'এই লেখায় পরিচিত কোনো সতর্ক সংকেত মেলেনি। তবুও সতর্ক থাকুন।',
+    resultAnnouncement: (count: number) =>
+      count === 0 ? 'কোনো পরিচিত সতর্ক সংকেত মেলেনি।' : `${count}টি লক্ষণ পাওয়া গেছে।`,
     detected: 'যা লক্ষ্য করা গেছে',
     why: 'কেন খেয়াল করবেন',
     safer: 'নিরাপদ পদক্ষেপ',
@@ -39,7 +43,7 @@ const copy = {
       'লিংক থাকা একাই প্রতারণার প্রমাণ নয়। এই পরীক্ষা লিংকটি খোলে বা নিরাপদ কি না যাচাই করে না।',
     privacyTitle: 'আপনার গোপনীয়তা',
     privacyBody:
-      'বিশ্লেষণ আপনার ডিভাইসেই হয়। লেখা সংরক্ষণ, লগ বা কোনো সার্ভারে পাঠানো হয় না।',
+      'এই অ্যাপের বিশ্লেষণ আপনার ব্রাউজারেই হয়। বিশ্লেষণের জন্য লেখা কোনো সার্ভারে পাঠানো বা অ্যাপের দ্বারা সংরক্ষণ করা হয় না।',
     guidanceTitle: 'নিশ্চিত নন? থামুন, যাচাই করুন।',
     guidanceBody:
       'OTP, PIN, পাসওয়ার্ড বা যাচাইকরণ কোড কাউকে দেবেন না—পরিচিত কেউ চাইলেও নয়। বার্তায় দেওয়া লিংক বা নম্বরের বদলে প্রতিষ্ঠানের পরিচিত অফিসিয়াল যোগাযোগপথ নিজে খুঁজে ব্যবহার করুন।',
@@ -98,12 +102,13 @@ const copy = {
   },
   en: {
     languageLabel: 'Choose language',
+    homeLabel: 'Go to the ShurokkhaLink BD home page',
     bengali: 'বাংলা',
     english: 'English',
     eyebrow: 'Stay aware. Stay safer.',
     title: 'Unsure about a message?',
     subtitle:
-      'Check for a few common warning signs locally—your message is never sent anywhere.',
+      'Check for a few common warning signs locally—the text is not sent to a server for analysis.',
     privacyShort: 'Your message is analysed only in this browser',
     analyzerTitle: 'Check a message',
     analyzerHint: 'Paste a suspicious SMS, chat, email excerpt, or other text here.',
@@ -119,9 +124,14 @@ const copy = {
     emptyError: 'Add some message text before analysing.',
     resultTitle: 'Analysis results',
     resultPrompt: 'Write a message above to see the local analysis.',
+    resultIdle: 'Analysis results will appear here after you check a message.',
     resultFindings: (count: number) =>
       `${count} ${count === 1 ? 'sign' : 'signs'} noticed`,
     resultClear: 'No common warning signs matched this text. Continue to use caution.',
+    resultAnnouncement: (count: number) =>
+      count === 0
+        ? 'No common warning signs matched this text.'
+        : `${count} ${count === 1 ? 'finding' : 'findings'} noticed.`,
     detected: 'What we noticed',
     why: 'Why it deserves attention',
     safer: 'A safer next step',
@@ -130,7 +140,7 @@ const copy = {
       'A link alone is not evidence of fraud. This check does not open a link or verify whether it is safe.',
     privacyTitle: 'Your privacy',
     privacyBody:
-      'Analysis happens on your device. Text is not stored, logged, or sent to a server.',
+      'This app analyses text in your browser. The app does not send message text to a server for analysis or store it.',
     guidanceTitle: 'Not sure? Pause and verify.',
     guidanceBody:
       'Never share an OTP, PIN, password, or verification code—not even if someone you know asks. Find the organisation’s known official contact details yourself instead of using a link or number in the message.',
@@ -193,12 +203,12 @@ const samples = {
   bn: [
     'আপনার অ্যাকাউন্ট বন্ধ হবে। এখনই OTP পাঠান।',
     'অভিনন্দন! আপনি ৫০,০০০ টাকা জিতেছেন। পুরস্কার পেতে এখনই ক্লিক করুন।',
-    'আপনার পার্সেল আটকে আছে—বিস্তারিত দেখুন: http://example.com/parcel',
+    'আপনার পার্সেলের তথ্য দেখুন: https://example.com/parcel',
   ],
   en: [
     'Your account will be blocked. Share your OTP now to keep it active.',
     'Congratulations! You won a prize of ৳50,000. Claim it today.',
-    'Your parcel is on hold. Check details at http://example.com/parcel',
+    'Check your parcel details at https://example.com/parcel',
   ],
 } satisfies Record<Language, string[]>
 
@@ -251,7 +261,7 @@ function App() {
   return (
     <div className="site-shell">
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="ShurokkhaLink BD home">
+        <a className="brand" href="#top" aria-label={text.homeLabel}>
           <span className="brand-mark" aria-hidden="true">
             শু
           </span>
@@ -313,6 +323,7 @@ function App() {
               value={message}
               onChange={(event) => {
                 setMessage(event.target.value)
+                setFindings(null)
                 if (error) setError('')
               }}
               placeholder={text.placeholder}
@@ -378,10 +389,18 @@ function App() {
             </span>
             <div>
               <h2 id="results-title">{text.resultTitle}</h2>
-              <p>{findings ? text.resultFindings(findings.length) : text.linkInfo}</p>
+              <p>{findings ? text.resultFindings(findings.length) : text.resultIdle}</p>
             </div>
           </div>
-          <div className="results-content" aria-live="polite" aria-atomic="true">
+          <p
+            className="visually-hidden"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {findings === null ? '' : text.resultAnnouncement(findings.length)}
+          </p>
+          <div className="results-content">
             {findings === null ? (
               <div className="results-empty">
                 <span className="empty-mark" aria-hidden="true">
@@ -398,27 +417,29 @@ function App() {
               </div>
             ) : (
               <>
-                <div className="finding-list">
-                  {messageFindings?.map((finding) => (
-                    <article className="finding-card" key={finding.id}>
-                      <div className="finding-icon" aria-hidden="true">
-                        !
-                      </div>
-                      <div className="finding-copy">
-                        <h3>{findingText(finding, 'label')}</h3>
-                        <p className="evidence">
-                          <span>{text.detected}:</span> “{finding.evidence}”
-                        </p>
-                        <p>
-                          <span>{text.why}:</span> {findingText(finding, 'why')}
-                        </p>
-                        <p>
-                          <span>{text.safer}:</span> {findingText(finding, 'safer')}
-                        </p>
-                      </div>
-                    </article>
-                  ))}
-                </div>
+                {messageFindings && messageFindings.length > 0 && (
+                  <div className="finding-list">
+                    {messageFindings.map((finding) => (
+                      <article className="finding-card" key={finding.id}>
+                        <div className="finding-icon" aria-hidden="true">
+                          !
+                        </div>
+                        <div className="finding-copy">
+                          <h3>{findingText(finding, 'label')}</h3>
+                          <p className="evidence">
+                            <span>{text.detected}:</span> “{finding.evidence}”
+                          </p>
+                          <p>
+                            <span>{text.why}:</span> {findingText(finding, 'why')}
+                          </p>
+                          <p>
+                            <span>{text.safer}:</span> {findingText(finding, 'safer')}
+                          </p>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
                 {linkFindings && linkFindings.length > 0 && (
                   <aside className="link-panel">
                     <div className="link-panel-heading">
