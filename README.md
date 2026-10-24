@@ -1,6 +1,6 @@
 # ShurokkhaLink BD
 
-**Live demo:** https://shurokkhalink-bd.sabbirahamedmail.workers.dev/  
+**Live demo:** https://shurokkhalink-bd.sabbirahamedmail.workers.dev/
 **Source code:** https://github.com/sabbir-glitch/shurokkhalink-bd
 
 ShurokkhaLink BD is a Bangla-first, browser-based awareness tool that gives users a second look at suspicious SMS messages, chat messages, and email excerpts. It explains a limited set of observable warning signs and suggests safer next steps. It is an independent educational project, not a government service or a fraud-verification authority.

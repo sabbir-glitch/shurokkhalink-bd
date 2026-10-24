@@ -1,6 +1,6 @@
 # ShurokkhaLink BD — v0.1 release-readiness record
 
-**Status:** Public demonstration deployed; research and production-readiness work remain in progress.  
+**Status:** Public demonstration deployed; research and production-readiness work remain in progress.
 **Last evidence update:** 24 October 2026.
 
 ## Evidence recorded

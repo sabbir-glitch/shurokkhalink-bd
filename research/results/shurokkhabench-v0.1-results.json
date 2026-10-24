@@ -1,7 +1,7 @@
 {
   "benchmark": "ShurokkhaBench",
   "version": "0.1.0-development",
-  "generatedAt": "2026-10-23T18:24:09.144Z",
+  "generatedAt": "2026-10-24T03:53:27.791Z",
   "interpretation": "Synthetic intended-behaviour results only. These are not real-world phishing or fraud detection accuracy estimates.",
   "caseCount": 36,
   "exactFindingSetMatches": 36,
