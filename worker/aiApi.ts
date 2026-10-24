@@ -36,6 +36,15 @@ export interface AiApiOptions {
   providerTimeoutMs?: number
 }
 
+export class AiProviderError extends Error {
+  constructor(
+    readonly code: 'rate_limited' | 'unavailable',
+    readonly retryAfterSeconds?: number,
+  ) {
+    super(code)
+  }
+}
+
 class InputError extends Error {
   constructor(
     readonly statusCode: number,
@@ -296,6 +305,7 @@ async function runProviderStage<T>(
     if (error instanceof ProviderTimeoutError || timedOut) {
       throw new ProviderTimeoutError()
     }
+    if (error instanceof AiProviderError) throw error
     throw new ProviderFailureError()
   } finally {
     if (timeoutId !== undefined) clearTimeout(timeoutId)
@@ -376,6 +386,32 @@ async function handleAnalysis(
       headers: responseHeaders(),
     })
   } catch (error) {
+    if (error instanceof AiProviderError && error.code === 'rate_limited') {
+      const response = errorResponse(
+        503,
+        'provider_rate_limited',
+        'AI analysis is temporarily unavailable. No result was produced.',
+        'unavailable',
+      )
+      const retryAfterSeconds = error.retryAfterSeconds
+      if (
+        typeof retryAfterSeconds === 'number' &&
+        Number.isInteger(retryAfterSeconds) &&
+        retryAfterSeconds > 0 &&
+        retryAfterSeconds <= 3_600
+      ) {
+        response.headers.set('Retry-After', String(retryAfterSeconds))
+      }
+      return response
+    }
+    if (error instanceof AiProviderError) {
+      return errorResponse(
+        503,
+        'provider_unavailable',
+        'AI analysis is temporarily unavailable. No result was produced.',
+        'unavailable',
+      )
+    }
     if (error instanceof ProviderTimeoutError) {
       return errorResponse(
         504,

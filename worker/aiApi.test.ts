@@ -11,7 +11,7 @@ import {
   type TranslationRequestV1,
   type TranslationResponseV1,
 } from '../src/lib/aiContracts'
-import { createAiApi, type AiProvider } from './aiApi'
+import { AiProviderError, createAiApi, type AiProvider } from './aiApi'
 
 const endpoint = 'https://shurokkha.example/api/ai/analyze'
 const sampleMessage = 'আপনার OTP এখনই পাঠান।'
@@ -357,6 +357,34 @@ describe('Cloudflare Worker AI API foundation', () => {
     expect(bodyText).toContain('"status":"unavailable"')
     expect(log).not.toHaveBeenCalled()
     expect(error).not.toHaveBeenCalled()
+  })
+
+  it('returns an unavailable rate-limit response and a bounded Retry-After hint', async () => {
+    const provider = makeProvider()
+    vi.mocked(provider.translate).mockRejectedValue(
+      new AiProviderError('rate_limited', 30),
+    )
+    const response = await createAiApi({ provider })(request())
+    const body = await json(response!)
+
+    expect(response?.status).toBe(503)
+    expect(response?.headers.get('Retry-After')).toBe('30')
+    expect(body.status).toBe('unavailable')
+    expect(body.error).toMatchObject({ code: 'provider_rate_limited' })
+    expect(body).not.toHaveProperty('analysis')
+    expect(provider.analyze).not.toHaveBeenCalled()
+  })
+
+  it('does not forward invalid provider retry hints', async () => {
+    const provider = makeProvider()
+    vi.mocked(provider.translate).mockRejectedValue(
+      new AiProviderError('rate_limited', 86_400),
+    )
+    const response = await createAiApi({ provider })(request())
+
+    expect(response?.status).toBe(503)
+    expect(response?.headers.get('Retry-After')).toBeNull()
+    expect((await json(response!)).status).toBe('unavailable')
   })
 
   it('times out translation and analysis stages without returning a safe verdict', async () => {
