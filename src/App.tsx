@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
-import { analyzeMessage, type Finding } from './lib/analyzeMessage'
+import { AiAnalysisError, analyzeWithAi, createRedactedPreview } from './lib/aiClient'
+import type { AiAnalysisSuccessV1, ScamIndicatorV1 } from './lib/aiContracts'
 import './App.css'
 
 type Language = 'bn' | 'en'
@@ -13,26 +14,55 @@ const copy = {
     eyebrow: 'সচেতন থাকুন, নিরাপদে থাকুন',
     title: 'সন্দেহজনক বার্তা?',
     subtitle:
-      'বার্তার কিছু পরিচিত সতর্ক সংকেত স্থানীয়ভাবে দেখে নিন—বিশ্লেষণের জন্য আপনার লেখা সার্ভারে পাঠানো হয় না।',
-    privacyShort: 'আপনার বার্তা শুধু এই ব্রাউজারেই বিশ্লেষণ করা হয়',
+      'অনুমতি দিলে বার্তাটি অনুবাদ ও AI বিশ্লেষণের জন্য তৃতীয় পক্ষের সেবায় পাঠানো হবে।',
+    privacyShort: 'তৃতীয় পক্ষের AI সেবায় পাঠানোর আগে আপনার অনুমতি লাগবে',
     analyzerTitle: 'বার্তাটি পরীক্ষা করুন',
     analyzerHint:
       'SMS, চ্যাট, ইমেইলের অংশ বা অন্য কোনো সন্দেহজনক লেখা এখানে পেস্ট করুন।',
     textareaLabel: 'সন্দেহজনক বার্তা',
     placeholder: 'বার্তার লেখা এখানে পেস্ট বা টাইপ করুন…',
     characterCount: (count: number) => `${count} অক্ষর`,
-    analyze: 'বার্তা বিশ্লেষণ করুন',
+    analyze: 'AI দিয়ে বার্তা বিশ্লেষণ করুন',
     clear: 'মুছে ফেলুন',
     examples: 'নমুনা দিয়ে দেখুন',
     sampleOne: 'OTP অনুরোধ',
     sampleTwo: 'পুরস্কারের বার্তা',
     sampleThree: 'লিংকসহ বার্তা',
     emptyError: 'বিশ্লেষণের আগে বার্তার লেখা যোগ করুন।',
+    consentError: 'চালিয়ে যেতে তৃতীয় পক্ষের AI প্রক্রিয়াকরণে সম্মতি দিন।',
+    consentLabel:
+      'আমি বুঝেছি যে মূল বার্তাটি অনুবাদ ও AI বিশ্লেষণের জন্য তৃতীয় পক্ষের সেবায় পাঠানো হবে।',
+    consentNote:
+      'মূল লেখাটি পাঠানো হবে। পূর্বরূপটি কিছু পরিচিত তথ্য আড়াল করে, তবে সংবেদনশীল তথ্য বাদ পড়তে পারে—পাঠানোর আগে যাচাই করে OTP, PIN, পাসওয়ার্ড ও ব্যক্তিগত তথ্য মুছে দিন।',
+    previewTitle: 'পাঠানোর আগে গোপনীয়তা-রক্ষিত পূর্বরূপ',
+    previewEmpty: 'পূর্বরূপ এখানে দেখানো হবে।',
+    loading: 'AI বিশ্লেষণ চলছে…',
+    unavailable:
+      'AI বিশ্লেষণ সেবা এখনো কনফিগার করা হয়নি। কোনো ফলাফল তৈরি বা দেখানো হয়নি।',
+    serviceUnavailable:
+      'AI সেবা সাময়িকভাবে পাওয়া যাচ্ছে না। কোনো ফলাফল দেখানো হয়নি; পরে আবার চেষ্টা করুন।',
+    rateLimited:
+      'AI সেবায় এখন অনেক অনুরোধ রয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন; কোনো বিশ্লেষণ দেখানো হয়নি।',
+    timeout: 'বিশ্লেষণে সময়সীমা অতিক্রান্ত হয়েছে। কোনো ফলাফল দেখানো হয়নি।',
+    networkError:
+      'বিশ্লেষণ সেবায় সংযোগ করা যায়নি। আপনার বার্তাকে নিরাপদ বা বিপজ্জনক বলা হয়নি।',
+    malformed: 'সেবা থেকে বৈধ ফলাফল পাওয়া যায়নি। কোনো বিশ্লেষণ দেখানো হয়নি।',
+    serviceError:
+      'AI বিশ্লেষণ সম্পন্ন করা যায়নি। পরে আবার চেষ্টা করুন; ফলাফলকে নিরাপদ বলে ধরে নেবেন না।',
+    translationTitle: 'ইংরেজি অনুবাদ',
+    verdictTitle: 'AI বিশ্লেষণ',
+    verdictSuspicious: 'সতর্কতার যোগ্য কিছু লক্ষণ পাওয়া গেছে',
+    verdictNoIndicators: 'এই বিশ্লেষণে উল্লেখযোগ্য লক্ষণ পাওয়া যায়নি',
+    verdictUncertain: 'বিশ্লেষণ অনিশ্চিত',
+    noIndicators: 'কোনো নির্দেশক দেখানো হয়নি। তবুও সতর্ক থাকুন।',
+    noFindings: 'এই বিশ্লেষণে কোনো নির্দেশক দেখানো হয়নি।',
+    notProof: 'AI-এর সতর্কতাও প্রতারণার প্রমাণ নয়। ফলাফল ভুল বা অসম্পূর্ণ হতে পারে।',
+    indicatorLabel: 'লক্ষণ',
     resultTitle: 'বিশ্লেষণের ফলাফল',
-    resultPrompt: 'বিশ্লেষণ শুরু করতে উপরের বাক্সে একটি বার্তা লিখুন।',
-    resultIdle: 'বিশ্লেষণ শুরু হলে ফলাফল এখানে দেখানো হবে।',
+    resultPrompt: 'সম্মতি দিয়ে AI বিশ্লেষণ শুরু করলে ফলাফল এখানে দেখানো হবে।',
+    resultIdle: 'AI বিশ্লেষণ শুরু হলে ফলাফল এখানে দেখানো হবে।',
     resultFindings: (count: number) => `${count}টি লক্ষণ পাওয়া গেছে`,
-    resultClear: 'এই লেখায় পরিচিত কোনো সতর্ক সংকেত মেলেনি। তবুও সতর্ক থাকুন।',
+    resultClear: 'এই বিশ্লেষণে উল্লেখযোগ্য লক্ষণ পাওয়া যায়নি। তবুও সতর্ক থাকুন।',
     resultAnnouncement: (labels: string[]) =>
       labels.length === 0
         ? 'কোনো পরিচিত সতর্ক সংকেত মেলেনি।'
@@ -45,13 +75,13 @@ const copy = {
       'লিংক থাকা একাই প্রতারণার প্রমাণ নয়। এই পরীক্ষা লিংকটি খোলে বা নিরাপদ কি না যাচাই করে না।',
     privacyTitle: 'আপনার গোপনীয়তা',
     privacyBody:
-      'এই অ্যাপের বিশ্লেষণ আপনার ব্রাউজারেই হয়। বিশ্লেষণের জন্য লেখা কোনো সার্ভারে পাঠানো বা অ্যাপের দ্বারা সংরক্ষণ করা হয় না।',
+      'আপনি সম্মতি দিলে মূল বার্তা অনুবাদ ও AI বিশ্লেষণের জন্য তৃতীয় পক্ষের সেবায় পাঠানো হবে। অ্যাপ বার্তা সংরক্ষণ করে না; তৃতীয় পক্ষের নিজস্ব তথ্য-ব্যবহার নীতি প্রযোজ্য হতে পারে।',
     guidanceTitle: 'নিশ্চিত নন? থামুন, যাচাই করুন।',
     guidanceBody:
       'OTP, PIN, পাসওয়ার্ড বা যাচাইকরণ কোড কাউকে দেবেন না—পরিচিত কেউ চাইলেও নয়। বার্তায় দেওয়া লিংক বা নম্বরের বদলে প্রতিষ্ঠানের পরিচিত অফিসিয়াল যোগাযোগপথ নিজে খুঁজে ব্যবহার করুন।',
     limitationTitle: 'মনে রাখবেন',
     limitationBody:
-      'এটি কয়েকটি পরিচিত শব্দ ও লিংকের গঠন দেখে সতর্ক সংকেত দেখায়—প্রেরকের পরিচয় যাচাই করে না, কোনো লিংক নিরাপদ বলে নিশ্চয়তা দেয় না, এবং প্রতারণা নিশ্চিত করতে পারে না। সতর্ক সংকেত না থাকলেও বার্তা প্রতারণামূলক হতে পারে।',
+      'AI অনুবাদ বা বিশ্লেষণে ভুল করতে পারে। এটি প্রেরকের পরিচয় যাচাই করে না, কোনো লিংক নিরাপদ বলে নিশ্চয়তা দেয় না, এবং প্রতারণা নিশ্চিত করতে পারে না। সতর্ক সংকেত না থাকলেও বার্তা প্রতারণামূলক হতে পারে।',
     footer: 'স্বাধীন সচেতনতামূলক টুল • কোনো সরকারি সেবা বা সরকারি অনুমোদিত পণ্য নয়',
     finding: {
       secret: {
@@ -110,26 +140,57 @@ const copy = {
     eyebrow: 'Stay aware. Stay safer.',
     title: 'Unsure about a message?',
     subtitle:
-      'Check for a few common warning signs locally—the text is not sent to a server for analysis.',
-    privacyShort: 'Your message is analysed only in this browser',
+      'With your consent, your message will be sent to a third-party service for translation and AI analysis.',
+    privacyShort: 'Your consent is required before sending text to third-party AI',
     analyzerTitle: 'Check a message',
     analyzerHint: 'Paste a suspicious SMS, chat, email excerpt, or other text here.',
     textareaLabel: 'Suspicious message',
     placeholder: 'Paste or type the message here…',
     characterCount: (count: number) => `${count} characters`,
-    analyze: 'Analyse message',
+    analyze: 'Analyse with AI',
     clear: 'Clear',
     examples: 'Try a sample',
     sampleOne: 'OTP request',
     sampleTwo: 'Prize message',
     sampleThree: 'Message with a link',
     emptyError: 'Add some message text before analysing.',
+    consentError: 'Consent to third-party AI processing before continuing.',
+    consentLabel:
+      'I understand that the original message will be sent to a third-party service for translation and AI analysis.',
+    consentNote:
+      'The original text will be sent. The preview masks some common patterns but may miss sensitive information—review it and remove OTPs, PINs, passwords, and personal details before continuing.',
+    previewTitle: 'Privacy-redacted preview before sending',
+    previewEmpty: 'The preview will appear here.',
+    loading: 'AI analysis in progress…',
+    unavailable:
+      'AI analysis is not configured yet. No result was generated or displayed.',
+    serviceUnavailable:
+      'The AI service is temporarily unavailable. No result was displayed; try again later.',
+    rateLimited:
+      'The AI service is receiving too many requests. Try again shortly; no analysis was displayed.',
+    timeout: 'The analysis timed out. No result was displayed.',
+    networkError:
+      'Could not connect to the analysis service. Your message has not been labelled safe or dangerous.',
+    malformed: 'The service returned an invalid result. No analysis is displayed.',
+    serviceError:
+      'AI analysis could not be completed. Try again later; do not assume the message is safe.',
+    translationTitle: 'English translation',
+    verdictTitle: 'AI analysis',
+    verdictSuspicious: 'Some indicators deserve attention',
+    verdictNoIndicators: 'No notable indicators were found in this analysis',
+    verdictUncertain: 'The analysis is uncertain',
+    noIndicators: 'No indicators were returned. Continue to use caution.',
+    noFindings: 'No indicators were returned in this analysis.',
+    notProof:
+      'An AI warning is not proof of fraud. Results may be wrong or incomplete.',
+    indicatorLabel: 'Indicator',
     resultTitle: 'Analysis results',
-    resultPrompt: 'Write a message above to see the local analysis.',
-    resultIdle: 'Analysis results will appear here after you check a message.',
+    resultPrompt: 'Give consent and start AI analysis to see a result here.',
+    resultIdle: 'AI analysis results will appear here after you submit a message.',
     resultFindings: (count: number) =>
       `${count} ${count === 1 ? 'sign' : 'signs'} noticed`,
-    resultClear: 'No common warning signs matched this text. Continue to use caution.',
+    resultClear:
+      'No notable indicators were found in this analysis. Continue to use caution.',
     resultAnnouncement: (labels: string[]) =>
       labels.length === 0
         ? 'No common warning signs matched this text.'
@@ -142,13 +203,13 @@ const copy = {
       'A link alone is not evidence of fraud. This check does not open a link or verify whether it is safe.',
     privacyTitle: 'Your privacy',
     privacyBody:
-      'This app analyses text in your browser. The app does not send message text to a server for analysis or store it.',
+      'With your consent, the original message is sent to a third-party service for translation and AI analysis. The app does not store it; the third party’s own data practices may apply.',
     guidanceTitle: 'Not sure? Pause and verify.',
     guidanceBody:
       'Never share an OTP, PIN, password, or verification code—not even if someone you know asks. Find the organisation’s known official contact details yourself instead of using a link or number in the message.',
     limitationTitle: 'Keep in mind',
     limitationBody:
-      'This tool checks a few known phrases and link structures for warning signs. It cannot verify a sender, certify a link as safe, or determine fraud. A message may still be fraudulent even when no warning signs are found.',
+      'AI translation and analysis can be wrong. This tool cannot verify a sender, certify a link as safe, or determine fraud. A message may still be fraudulent even when no warning signs are found.',
     footer:
       'Independent awareness tool • Not a government service or officially endorsed product',
     finding: {
@@ -217,48 +278,129 @@ const samples = {
 function App() {
   const [language, setLanguage] = useState<Language>('bn')
   const [message, setMessage] = useState('')
-  const [findings, setFindings] = useState<Finding[] | null>(null)
+  const [consented, setConsented] = useState(false)
+  const [result, setResult] = useState<AiAnalysisSuccessV1 | null>(null)
   const [error, setError] = useState('')
+  const [analysisError, setAnalysisError] = useState('')
+  const [loading, setLoading] = useState(false)
   const text = copy[language]
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (loading) return
     if (!message.trim()) {
-      setFindings(null)
+      setResult(null)
       setError(text.emptyError)
       return
     }
+    if (!consented) {
+      setResult(null)
+      setError(text.consentError)
+      return
+    }
+
     setError('')
-    setFindings(analyzeMessage(message))
+    setAnalysisError('')
+    setResult(null)
+    setLoading(true)
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 15_000)
+    try {
+      const analysis = await analyzeWithAi(message, controller.signal)
+      setResult(analysis)
+    } catch (caught) {
+      if (controller.signal.aborted) {
+        setAnalysisError(copy[language].timeout)
+      } else if (caught instanceof AiAnalysisError) {
+        if (caught.code === 'ai_not_configured') {
+          setAnalysisError(copy[language].unavailable)
+        } else if (caught.code === 'provider_unavailable') {
+          setAnalysisError(copy[language].serviceUnavailable)
+        } else if (caught.code === 'provider_timeout') {
+          setAnalysisError(copy[language].timeout)
+        } else if (caught.code === 'provider_rate_limited') {
+          setAnalysisError(copy[language].rateLimited)
+        } else if (
+          caught.code === 'invalid_response' ||
+          caught.code === 'invalid_provider_response'
+        ) {
+          setAnalysisError(copy[language].malformed)
+        } else {
+          setAnalysisError(copy[language].serviceError)
+        }
+      } else {
+        setAnalysisError(copy[language].networkError)
+      }
+    } finally {
+      window.clearTimeout(timeout)
+      setLoading(false)
+    }
   }
 
   function handleClear() {
     setMessage('')
-    setFindings(null)
+    setConsented(false)
+    setResult(null)
     setError('')
+    setAnalysisError('')
   }
 
   function handleLanguageChange(nextLanguage: Language) {
+    if (error === copy[language].emptyError) {
+      setError(copy[nextLanguage].emptyError)
+    } else if (error === copy[language].consentError) {
+      setError(copy[nextLanguage].consentError)
+    }
+    const analysisErrorKeys = [
+      'unavailable',
+      'serviceUnavailable',
+      'rateLimited',
+      'timeout',
+      'networkError',
+      'malformed',
+      'serviceError',
+    ] as const
+    const matchingError = analysisErrorKeys.find(
+      (key) => analysisError === copy[language][key],
+    )
+    if (matchingError) {
+      setAnalysisError(copy[nextLanguage][matchingError])
+    }
     setLanguage(nextLanguage)
-    if (error) setError(copy[nextLanguage].emptyError)
     document.documentElement.lang = nextLanguage
   }
 
-  function findingText(finding: Finding, key: 'label' | 'why' | 'safer') {
-    return copy[language].finding[finding.kind][key]
+  function indicatorLabel(indicator: ScamIndicatorV1): string {
+    const category = indicator.category
+    if (category === 'secret_request') return text.finding.secret.label
+    if (category === 'urgency') return text.finding.urgency.label
+    if (category === 'prize_claim') return text.finding.prize.label
+    if (category === 'link') return text.finding.link.label
+    return category === 'impersonation'
+      ? language === 'bn'
+        ? 'পরিচয় বা প্রতিষ্ঠানের ছদ্মবেশের ইঙ্গিত'
+        : 'Possible impersonation indicator'
+      : language === 'bn'
+        ? 'অন্য সতর্কতার লক্ষণ'
+        : 'Other warning indicator'
   }
 
-  const messageFindings = findings?.filter(
-    (finding) =>
-      finding.kind !== 'link' &&
-      finding.kind !== 'http' &&
-      finding.kind !== 'credentials' &&
-      finding.kind !== 'ip' &&
-      finding.kind !== 'punycode',
-  )
-  const linkFindings = findings?.filter((finding) =>
-    ['link', 'http', 'credentials', 'ip', 'punycode'].includes(finding.kind),
-  )
+  function indicatorAdvice(indicator: ScamIndicatorV1): string {
+    if (indicator.category === 'secret_request') return text.finding.secret.safer
+    if (indicator.category === 'urgency') return text.finding.urgency.safer
+    if (indicator.category === 'prize_claim') return text.finding.prize.safer
+    if (indicator.category === 'link') return text.finding.link.safer
+    return text.guidanceBody
+  }
+
+  const verdictText =
+    result?.analysis.verdict === 'suspicious'
+      ? text.verdictSuspicious
+      : result?.analysis.verdict === 'no_indicators'
+        ? text.verdictNoIndicators
+        : result
+          ? text.verdictUncertain
+          : ''
 
   return (
     <div className="site-shell">
@@ -323,40 +465,78 @@ function App() {
             <textarea
               id="message-input"
               value={message}
+              maxLength={10_000}
+              disabled={loading}
               onChange={(event) => {
                 setMessage(event.target.value)
-                setFindings(null)
+                setResult(null)
+                setAnalysisError('')
                 if (error) setError('')
               }}
               placeholder={text.placeholder}
               rows={7}
-              aria-invalid={Boolean(error)}
-              aria-describedby={error ? 'message-error' : 'message-count'}
+              aria-invalid={error === text.emptyError}
+              aria-describedby={
+                error === text.emptyError
+                  ? 'message-error message-count privacy-note'
+                  : 'message-count privacy-note'
+              }
             />
             <div className="input-meta">
-              {error ? (
-                <p id="message-error" className="field-error" role="alert">
-                  {error}
-                </p>
-              ) : (
+              <div>
+                {error && (
+                  <p id="message-error" className="field-error" role="alert">
+                    {error}
+                  </p>
+                )}
                 <p id="message-count" className="character-count">
                   {text.characterCount(message.length)}
                 </p>
-              )}
+              </div>
               <div className="form-actions">
                 <button
                   className="button button-quiet"
                   type="button"
                   onClick={handleClear}
+                  disabled={loading}
                 >
                   {text.clear}
                 </button>
-                <button className="button button-primary" type="submit">
-                  {text.analyze}
-                  <span aria-hidden="true"> →</span>
+                <button
+                  className="button button-primary"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? text.loading : text.analyze}
+                  {!loading && <span aria-hidden="true"> →</span>}
                 </button>
               </div>
             </div>
+            <p className="consent-note" id="privacy-note">
+              {text.consentNote}
+            </p>
+            <div className="redacted-preview">
+              <h3>{text.previewTitle}</h3>
+              <p>{message ? createRedactedPreview(message) : text.previewEmpty}</p>
+            </div>
+            <label className="consent-control" htmlFor="ai-consent">
+              <input
+                id="ai-consent"
+                type="checkbox"
+                checked={consented}
+                aria-invalid={error === text.consentError}
+                aria-describedby={
+                  error === text.consentError ? 'message-error' : undefined
+                }
+                disabled={loading}
+                onChange={(event) => {
+                  setConsented(event.target.checked)
+                  if (error) setError('')
+                  setAnalysisError('')
+                }}
+              />
+              <span>{text.consentLabel}</span>
+            </label>
           </form>
 
           <div className="examples">
@@ -367,10 +547,12 @@ function App() {
                   type="button"
                   className="sample-button"
                   key={sample}
+                  disabled={loading}
                   onClick={() => {
                     setMessage(sample)
-                    setFindings(null)
+                    setResult(null)
                     setError('')
+                    setAnalysisError('')
                   }}
                 >
                   {index === 0
@@ -391,7 +573,11 @@ function App() {
             </span>
             <div>
               <h2 id="results-title">{text.resultTitle}</h2>
-              <p>{findings ? text.resultFindings(findings.length) : text.resultIdle}</p>
+              <p>
+                {result
+                  ? text.resultFindings(result.analysis.indicators.length)
+                  : text.resultIdle}
+              </p>
             </div>
           </div>
           <p
@@ -400,89 +586,70 @@ function App() {
             aria-live="polite"
             aria-atomic="true"
           >
-            {findings === null
-              ? ''
-              : text.resultAnnouncement(
-                  findings.map((finding) => findingText(finding, 'label')),
-                )}
+            {loading
+              ? text.loading
+              : analysisError
+                ? analysisError
+                : result
+                  ? `${verdictText}. ${result.analysis.summary}`
+                  : ''}
           </p>
           <div className="results-content">
-            {findings === null ? (
+            {loading ? (
+              <div className="results-empty" role="status">
+                <p>{text.loading}</p>
+              </div>
+            ) : analysisError && !result ? (
+              <div className="analysis-error">{analysisError}</div>
+            ) : result ? (
+              <div className="ai-result">
+                <section
+                  className="translation-panel"
+                  aria-labelledby="translation-title"
+                >
+                  <h3 id="translation-title">{text.translationTitle}</h3>
+                  <p>{result.translation.translatedText}</p>
+                </section>
+                <section className="analysis-panel" aria-labelledby="ai-result-title">
+                  <h3 id="ai-result-title">
+                    {text.verdictTitle}: {verdictText}
+                  </h3>
+                  <p>{result.analysis.summary}</p>
+                  {result.analysis.indicators.length > 0 ? (
+                    <div className="finding-list">
+                      {result.analysis.indicators.map((indicator, index) => (
+                        <article
+                          className="finding-card"
+                          key={`${indicator.category}-${index}`}
+                        >
+                          <div className="finding-icon" aria-hidden="true">
+                            !
+                          </div>
+                          <div className="finding-copy">
+                            <h4>{indicatorLabel(indicator)}</h4>
+                            <p>
+                              <span>{text.detected}:</span> {indicator.explanation}
+                            </p>
+                            <p>
+                              <span>{text.safer}:</span> {indicatorAdvice(indicator)}
+                            </p>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>{text.noIndicators}</p>
+                  )}
+                </section>
+                <p className="not-proof">{text.notProof}</p>
+              </div>
+            ) : (
               <div className="results-empty">
                 <span className="empty-mark" aria-hidden="true">
                   ✓
                 </span>
                 <p>{text.resultPrompt}</p>
               </div>
-            ) : findings.length === 0 ? (
-              <div className="results-clear">
-                <span className="clear-mark" aria-hidden="true">
-                  ✓
-                </span>
-                <p>{text.resultClear}</p>
-              </div>
-            ) : (
-              <>
-                {messageFindings && messageFindings.length > 0 && (
-                  <div className="finding-list">
-                    {messageFindings.map((finding) => (
-                      <article className="finding-card" key={finding.id}>
-                        <div className="finding-icon" aria-hidden="true">
-                          !
-                        </div>
-                        <div className="finding-copy">
-                          <h3>{findingText(finding, 'label')}</h3>
-                          <p className="evidence">
-                            <span>{text.detected}:</span> “{finding.evidence}”
-                          </p>
-                          <p>
-                            <span>{text.why}:</span> {findingText(finding, 'why')}
-                          </p>
-                          <p>
-                            <span>{text.safer}:</span> {findingText(finding, 'safer')}
-                          </p>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                )}
-                {linkFindings && linkFindings.length > 0 && (
-                  <aside className="link-panel">
-                    <div className="link-panel-heading">
-                      <span className="link-icon" aria-hidden="true">
-                        ↗
-                      </span>
-                      <div>
-                        <h3>{text.linkSection}</h3>
-                        <p>{text.linkInfo}</p>
-                      </div>
-                    </div>
-                    <div className="link-findings">
-                      {linkFindings.map((finding) => (
-                        <article className="link-finding" key={finding.id}>
-                          <h4>{findingText(finding, 'label')}</h4>
-                          <p className="evidence">
-                            <span>{text.detected}:</span> “{finding.evidence}”
-                          </p>
-                          <p>
-                            <span>{text.why}:</span> {findingText(finding, 'why')}
-                          </p>
-                          <p>
-                            <span>{text.safer}:</span> {findingText(finding, 'safer')}
-                          </p>
-                        </article>
-                      ))}
-                    </div>
-                  </aside>
-                )}
-                {findings.length > 0 && (
-                  <p className="not-proof">
-                    {language === 'bn'
-                      ? 'সতর্ক সংকেত মানেই প্রতারণা প্রমাণিত নয়।'
-                      : 'A warning sign is not proof of fraud.'}
-                  </p>
-                )}
-              </>
             )}
           </div>
         </section>
