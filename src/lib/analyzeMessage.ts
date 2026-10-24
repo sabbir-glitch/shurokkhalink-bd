@@ -23,10 +23,18 @@ const banglishSecretRequestPattern =
   /(?:\b(?:otp|o\s*t\s*p|pin|password|passcode|verification code|security code|one[- ]time code)\b.{0,55}\b(?:send|share|tell|provide|give|reply|enter|submit|confirm|verify|pathan|pathaben|den|diben|din|korun|koren|koro|korben)\b|\b(?:send|share|tell|provide|give|reply|enter|submit|confirm|verify|pathan|pathaben|den|diben|din|korun|koren|koro|korben)\b.{0,55}\b(?:otp|o\s*t\s*p|pin|password|passcode|verification code|security code|one[- ]time code)\b)/iu
 
 const urgencyPattern =
-  /\b(?:act now|within \d+ (?:minutes?|hours?)|(?:will be|may be|is about to be)\s+(?:blocked|suspended|closed))\b|\b(?:act|respond|reply|complete|verify|send|share|submit|pay|click|confirm|provide|update)\b[^.!?।\n]{0,20}\b(?:immediately|urgently|right away)\b|\b(?:immediately|right away)\s+(?:act|respond|reply|complete|verify|send|share|submit|pay|click|confirm|provide|update)\b|\burgent(?:ly)?(?=\s*(?:[:!—-]|\b(?:action|response|verification|payment|deadline|required)\b))|(?:অবিলম্বে|জরুরি)\s*(?::|!|।)|(?:অবিলম্বে|জরুরি)[^.!?।\n]{0,15}(?:করুন|পাঠান|দিন|ক্লিক|যোগাযোগ|জমা|দাবি|শেষ|যাচাই)|দ্রুত করুন|এখন না করলে|এখনই.{0,15}(?:করুন|পাঠান|দিন|ক্লিক|যোগাযোগ|জমা|দাবি|না করলে)|আজই.{0,15}(?:করুন|পাঠান|দিন|ক্লিক|জমা|দাবি|না করলে|শেষ)|(?:অ্যাকাউন্ট|সেবা|সিম|কার্ড).{0,15}(?:বন্ধ হয়ে যাবে|বন্ধ হয়ে যাবে|ব্লক হবে)|(?:বন্ধ হয়ে যাবে|বন্ধ হয়ে যাবে|ব্লক হবে).{0,15}(?:অ্যাকাউন্ট|সেবা|সিম|কার্ড)/iu
+  /\b(?:act now|(?:will be|may be|is about to be)\s+(?:blocked|suspended|closed))\b|\b(?:act|respond|reply|complete|verify|send|share|submit|pay|click|confirm|provide|update)\b[^.!?।\n]{0,20}\b(?:immediately|urgently|right away)\b|\b(?:immediately|right away)\s+(?:act|respond|reply|complete|verify|send|share|submit|pay|click|confirm|provide|update)\b|\burgent(?:ly)?(?=\s*(?:[:!—-]|\b(?:action|response|verification|payment|deadline|required)\b))|(?:অবিলম্বে|জরুরি)\s*(?::|!|।)|(?:অবিলম্বে|জরুরি)[^.!?।\n]{0,15}(?:করুন|পাঠান|দিন|ক্লিক|যোগাযোগ|জমা|দাবি|শেষ|যাচাই)|দ্রুত করুন|এখন না করলে|এখনই.{0,15}(?:করুন|পাঠান|দিন|ক্লিক|যোগাযোগ|জমা|দাবি|না করলে)|আজই.{0,15}(?:করুন|পাঠান|দিন|ক্লিক|জমা|দাবি|না করলে|শেষ)|(?:অ্যাকাউন্ট|সেবা|সিম|কার্ড).{0,15}(?:বন্ধ হয়ে যাবে|বন্ধ হয়ে যাবে|ব্লক হবে)|(?:বন্ধ হয়ে যাবে|বন্ধ হয়ে যাবে|ব্লক হবে).{0,15}(?:অ্যাকাউন্ট|সেবা|সিম|কার্ড)/iu
 
 const banglishUrgencyPattern =
   /\b(?:ekhoni|ekhuni|ekhonoi|taratari|joldi)\b.{0,35}\b(?:act|respond|reply|complete|verify|send|share|submit|pay|click|confirm|provide|update|call|pathan|pathaben|den|diben|din|korun|koren|koro|korben)\b|\b(?:act|respond|reply|complete|verify|send|share|submit|pay|click|confirm|provide|update|call|pathan|pathaben|den|diben|din|korun|koren|koro|korben)\b.{0,35}\b(?:ekhoni|ekhuni|ekhonoi|taratari|joldi)\b|\b(?:account|sim|card|service)\b.{0,30}\b(?:bondho|block|suspend|off)\b.{0,25}\b(?:hoye jabe|hobe)\b/iu
+
+const urgencyDeadlinePattern = /\bwithin \d+ (?:minutes?|hours?)\b/iu
+const deadlineConsequencePattern =
+  /\b(?:prevent|avoid|otherwise|or)\b[^.!?।\n]{0,50}\b(?:block(?:ed)?|suspend(?:ed|ing)?|suspension|clos(?:e|ed|ure)|terminat(?:e|ed|ion))\b|\b(?:account|service|sim|card)\b[^.!?।\n]{0,45}\b(?:blocked|suspended|closed|terminated)\b|\b(?:blocked|suspended|closed|terminated)\b[^.!?।\n]{0,45}\b(?:account|service|sim|card)\b/iu
+const urgencyNegationPattern =
+  /\b(?:do not|don't|does not|doesn't|did not|didn't|should not|shouldn't|must not|mustn't|need not|needn't|never|cannot|can't|won't)\b[^.!?।\n]{0,45}$/iu
+const urgencyNegationAfterPattern =
+  /^\s*(?:not\b|na\b|(?:korben|korbo|korbe|koro|korun|koren|diben|dibo|den|din|pathan|pathaben|bolben|bolbo|likhben|likho)\s+na\b)/iu
 
 const prizePattern =
   /\b(?:you (?:have )?won|you(?:'re| are) (?:a )?winner|selected as (?:a )?winner|claim (?:your )?(?:money|reward|prize)|free (?:gift|money)|cash prize|unclaimed funds|win (?:a |the )?(?:prize|lottery|cash|money)|(?:prize|reward|lottery).{0,35}(?:claim|winner|won|selected))\b|অভিনন্দন.{0,35}(?:জিতেছেন|পুরস্কার|লটারি)|(?:জিতেছেন|জিতেছ|বিজয়ী|বিজয়ী).{0,25}(?:টাকা|পুরস্কার|লটারি|উপহার)|(?:টাকা|পুরস্কার|লটারি|উপহার).{0,30}(?:জিতেছেন|জিতেছ|দাবি|পেতে|পেয়েছেন|পেয়েছেন)|(?:পুরস্কার|লটারি).{0,20}(?:দাবি|জিত|পেতে|ক্লিক)/iu
@@ -62,6 +70,45 @@ function findSecretRequest(text: string): string | undefined {
     if (!crossesSentenceBoundary && !negatedBefore && !negatedAfter) {
       return match[0]
     }
+  }
+
+  return undefined
+}
+
+function findUrgency(text: string): string | undefined {
+  const pattern = new RegExp(
+    `(?:${urgencyPattern.source})|(?:${banglishUrgencyPattern.source})|(?:${urgencyDeadlinePattern.source})`,
+    'giu',
+  )
+
+  for (const match of text.matchAll(pattern)) {
+    const start = match.index ?? 0
+    const end = start + match[0].length
+    const followingText = text.slice(end, end + 24)
+    const sentenceStart = Math.max(
+      text.lastIndexOf('.', start - 1),
+      text.lastIndexOf('!', start - 1),
+      text.lastIndexOf('?', start - 1),
+      text.lastIndexOf('।', start - 1),
+      text.lastIndexOf('\n', start - 1),
+    )
+    const sentenceEndCandidates = ['.', '!', '?', '।', '\n'].map((boundary) => {
+      const index = text.indexOf(boundary, end)
+      return index < 0 ? text.length : index
+    })
+    const sentenceEnd = Math.min(...sentenceEndCandidates)
+    const sentencePrecedingText = text.slice(
+      Math.max(sentenceStart + 1, start - 55),
+      start,
+    )
+    const negated =
+      urgencyNegationPattern.test(sentencePrecedingText) ||
+      urgencyNegationAfterPattern.test(followingText)
+    const deadlineWithoutConsequence =
+      urgencyDeadlinePattern.test(match[0]) &&
+      !deadlineConsequencePattern.test(text.slice(sentenceStart + 1, sentenceEnd))
+
+    if (!negated && !deadlineWithoutConsequence) return match[0]
   }
 
   return undefined
@@ -128,9 +175,7 @@ export function analyzeMessage(message: string): Finding[] {
   if (typeof message !== 'string' || !message.trim()) return []
   const findings: Finding[] = []
   const secretEvidence = findSecretRequest(message)
-  const urgencyEvidence =
-    findEvidence(message, urgencyPattern) ??
-    findEvidence(message, banglishUrgencyPattern)
+  const urgencyEvidence = findUrgency(message)
   const prizeEvidence = findEvidence(message, prizePattern)
   if (secretEvidence) {
     findings.push({ id: 'secret-request', kind: 'secret', evidence: secretEvidence })
