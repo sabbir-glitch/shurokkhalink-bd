@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "evaluate:v0.2": "node --experimental-strip-types research/evaluate-v0.2.mjs",
     "test": "vitest run",
     "test:run": "vitest run",
     "format": "prettier --write .",

@@ -1,0 +1,1275 @@
+{
+  "benchmark": "ShurokkhaBench",
+  "version": "0.2.0-candidate",
+  "purpose": "Fresh synthetic challenge corpus for draft intended-indicator evaluation; not a validated independent set or real-world fraud-detection study.",
+  "status": "DRAFT — all labels require human review",
+  "reviewStatus": "not independently reviewed",
+  "supportedKinds": [
+    "secret",
+    "urgency",
+    "prize",
+    "link",
+    "http",
+    "credentials",
+    "ip",
+    "punycode"
+  ],
+  "cases": [
+    {
+      "id": "H02-EN-001",
+      "language": "en",
+      "category": "ordinary-benign",
+      "message": "The library has extended hours on Thursday.",
+      "expectedFindings": [],
+      "rationale": "Routine schedule information has no pressured request, secret request, prize claim, or link.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-ordinary"
+    },
+    {
+      "id": "H02-EN-002",
+      "language": "en",
+      "category": "ordinary-benign",
+      "message": "I left the blue folder beside the reception desk.",
+      "expectedFindings": [],
+      "rationale": "A routine location update contains none of the target indicators.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-ordinary"
+    },
+    {
+      "id": "H02-EN-003",
+      "language": "en",
+      "category": "ordinary-benign",
+      "message": "The bus is scheduled to arrive at half past six.",
+      "expectedFindings": [],
+      "rationale": "A neutral travel time is not coercive urgency.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-ordinary"
+    },
+    {
+      "id": "H02-EN-004",
+      "language": "en",
+      "category": "ordinary-benign",
+      "message": "I earned reward points after buying groceries.",
+      "expectedFindings": [],
+      "rationale": "Ordinary earned points are not an unexpected personal prize claim.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-prize-claim"
+    },
+    {
+      "id": "H02-EN-005",
+      "language": "en",
+      "category": "protective-negation",
+      "message": "A bank employee should never ask you to read out an OTP.",
+      "expectedFindings": [],
+      "rationale": "This is protective advice, not a request to disclose a secret.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-secret-contrast"
+    },
+    {
+      "id": "H02-EN-006",
+      "language": "en",
+      "category": "protective-negation",
+      "message": "Do not type your account password into a message reply.",
+      "expectedFindings": [],
+      "rationale": "The negative instruction advises against sharing a password.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-secret-contrast"
+    },
+    {
+      "id": "H02-EN-007",
+      "language": "en",
+      "category": "protective-negation",
+      "message": "You do not need to click immediately; wait for the printed notice.",
+      "expectedFindings": [],
+      "rationale": "The text explicitly removes pressure to act and contains no suspicious request.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-urgency-contrast"
+    },
+    {
+      "id": "H02-EN-008",
+      "language": "en",
+      "category": "secret-request",
+      "message": "Reply with the one-time code shown in your banking app.",
+      "expectedFindings": [
+        {
+          "kind": "secret",
+          "rationale": "It asks the recipient to reply with a one-time authentication code."
+        }
+      ],
+      "rationale": "This case isolates an English secret request without an urgency cue.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-secret-contrast"
+    },
+    {
+      "id": "H02-EN-009",
+      "language": "en",
+      "category": "secret-request",
+      "message": "Please provide the PIN to release the parcel.",
+      "expectedFindings": [
+        {
+          "kind": "secret",
+          "rationale": "It requests a PIN, which is an authentication secret."
+        }
+      ],
+      "rationale": "This synthetic parcel scenario tests a PIN request with a stated purpose.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-010",
+      "language": "en",
+      "category": "secret-request",
+      "message": "Enter your account password in the confirmation form.",
+      "expectedFindings": [
+        {
+          "kind": "secret",
+          "rationale": "It instructs the recipient to enter an account password."
+        }
+      ],
+      "rationale": "This case tests a password request without an urgency or prize claim.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-011",
+      "language": "en",
+      "category": "secret-request",
+      "message": "Tell the caller the verification code to finish registration.",
+      "expectedFindings": [
+        {
+          "kind": "secret",
+          "rationale": "It asks the recipient to disclose a verification code."
+        }
+      ],
+      "rationale": "The request uses a disclosure verb and authentication-code wording.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-012",
+      "language": "en",
+      "category": "secret-request",
+      "message": "Send the passcode to the account desk for a profile update.",
+      "expectedFindings": [
+        { "kind": "secret", "rationale": "It requests a passcode from the recipient." }
+      ],
+      "rationale": "This tests a passcode synonym in a non-urgent request.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-013",
+      "language": "en",
+      "category": "urgency-consequence",
+      "message": "Respond immediately or your membership will be suspended.",
+      "expectedFindings": [
+        {
+          "kind": "urgency",
+          "rationale": "An immediate response is demanded under threat of suspension."
+        }
+      ],
+      "rationale": "This pairs direct time pressure with a membership consequence.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-urgency-contrast"
+    },
+    {
+      "id": "H02-EN-014",
+      "language": "en",
+      "category": "urgency-consequence",
+      "message": "Your service may be closed unless the form is submitted today.",
+      "expectedFindings": [
+        {
+          "kind": "urgency",
+          "rationale": "A service-closure threat is tied to a deadline for action."
+        }
+      ],
+      "rationale": "This tests a deadline consequence without authentication-secret language.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-015",
+      "language": "en",
+      "category": "urgency-consequence",
+      "message": "Confirm the renewal within 12 minutes to avoid account closure.",
+      "expectedFindings": [
+        {
+          "kind": "urgency",
+          "rationale": "The short deadline is explicitly connected to avoiding account closure."
+        }
+      ],
+      "rationale": "A consequential deadline is intended to be an urgency indicator.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-016",
+      "language": "en",
+      "category": "urgency-consequence",
+      "message": "URGENT ACTION REQUIRED: call the service desk now.",
+      "expectedFindings": [
+        {
+          "kind": "urgency",
+          "rationale": "An urgent label and immediate call instruction pressure the recipient."
+        }
+      ],
+      "rationale": "This tests an urgency label combined with an action instruction.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-017",
+      "language": "en",
+      "category": "prize-reward",
+      "message": "The award committee publishes its eligibility rules each spring.",
+      "expectedFindings": [],
+      "rationale": "This is general information about award rules, not a personal prize claim.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-prize-claim"
+    },
+    {
+      "id": "H02-EN-018",
+      "language": "en",
+      "category": "prize-reward",
+      "message": "Your entry won a cash award; contact the desk to learn the terms.",
+      "expectedFindings": [
+        { "kind": "prize", "rationale": "It makes a personal winning-money claim." }
+      ],
+      "rationale": "The text tests a personal prize claim followed by neutral verification advice.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-prize-claim"
+    },
+    {
+      "id": "H02-EN-019",
+      "language": "en",
+      "category": "prize-reward",
+      "message": "The community group prepares a small gift for registered volunteers.",
+      "expectedFindings": [],
+      "rationale": "A general community gift is mentioned without an unexpected personal award or claim request.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-prize-claim"
+    },
+    {
+      "id": "H02-EN-020",
+      "language": "en",
+      "category": "informational-link",
+      "message": "The community timetable is posted at https://notice.example/timetable.",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "The message contains a URL; its presence is informational and is not evidence of fraud."
+        }
+      ],
+      "rationale": "A normal-looking HTTPS link should produce only an informational link finding.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-links"
+    },
+    {
+      "id": "H02-EN-021",
+      "language": "en",
+      "category": "informational-link",
+      "message": "Reference copy: www.archive.test/docs/guide.",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "The supported www-form address should be noticed as a link only."
+        }
+      ],
+      "rationale": "This tests a URL without an explicit scheme, using a reserved testing domain.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-links"
+    },
+    {
+      "id": "H02-EN-022",
+      "language": "en",
+      "category": "url-http",
+      "message": "The sample notice is at http://manual.example/readme.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "A URL is present." },
+        {
+          "kind": "http",
+          "rationale": "The URL uses HTTP rather than HTTPS; this is a transport observation, not proof of maliciousness."
+        }
+      ],
+      "rationale": "This isolates the observable HTTP scheme indicator.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-links"
+    },
+    {
+      "id": "H02-EN-023",
+      "language": "en",
+      "category": "url-credentials",
+      "message": "Training link: https://guest:sample@example.test/portal.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "A URL is present." },
+        {
+          "kind": "credentials",
+          "rationale": "The URL visibly contains user-information before its host."
+        }
+      ],
+      "rationale": "Credentials are synthetic placeholders inside a reserved example-domain URL; it must not be visited.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-024",
+      "language": "en",
+      "category": "url-ipv4",
+      "message": "Test server address: https://192.0.2.44/status.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "A URL is present." },
+        {
+          "kind": "ip",
+          "rationale": "The URL host is an IPv4 literal in the documentation range."
+        }
+      ],
+      "rationale": "Uses TEST-NET-1 documentation IP space and is never contacted.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-025",
+      "language": "en",
+      "category": "url-ipv6",
+      "message": "Lab-only endpoint: https://[2001:db8::44]/health.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "A URL is present." },
+        {
+          "kind": "ip",
+          "rationale": "The bracketed host is an IPv6 literal from documentation space."
+        }
+      ],
+      "rationale": "Uses the IPv6 documentation prefix and is never contacted.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-026",
+      "language": "en",
+      "category": "url-punycode",
+      "message": "Example address: https://xn--caf-dma.example/menu.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "A URL is present." },
+        {
+          "kind": "punycode",
+          "rationale": "The host includes a punycode-encoded label; this observation alone does not establish deception."
+        }
+      ],
+      "rationale": "Uses a reserved example domain and a syntactically punycode label without resolving it.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-027",
+      "language": "en",
+      "category": "multiple-urls",
+      "message": "Compare https://catalog.example/items and http://mirror.test/list.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "At least one URL is present." },
+        { "kind": "http", "rationale": "One of the two URLs uses HTTP." }
+      ],
+      "rationale": "Two reserved-domain links test multiple extraction while kinds are evaluated as presence/absence.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-multiple"
+    },
+    {
+      "id": "H02-EN-028",
+      "language": "en",
+      "category": "unusual-url-representation",
+      "message": "Uppercase scheme sample: HTTPS://manual.example/INDEX?view=plain.",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "The URL extractor is case-insensitive for the scheme."
+        }
+      ],
+      "rationale": "Tests uppercase scheme spelling without implying any risk based on presence.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-029",
+      "language": "en",
+      "category": "unusual-url-representation",
+      "message": "The address written here is https://archive.example/guide_(draft).",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "The URL is observable even though its path contains parentheses."
+        }
+      ],
+      "rationale": "Tests punctuation handling around a reserved-domain URL.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-EN-030",
+      "language": "en",
+      "category": "multiple-urls",
+      "message": "Reference: www.index.test/a then https://[2001:db8::9]/b and http://192.0.2.9/c.",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "The text contains several supported URL forms."
+        },
+        { "kind": "http", "rationale": "One URL uses HTTP." },
+        {
+          "kind": "ip",
+          "rationale": "At least one URL uses an IPv4 or IPv6 literal host."
+        }
+      ],
+      "rationale": "Combines www, HTTPS IPv6, and HTTP documentation IPv4 URLs without contacting them.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "EN-multiple"
+    },
+    {
+      "id": "H02-BN-001",
+      "language": "bn",
+      "category": "ordinary-benign",
+      "message": "শনিবার সকালে আমরা নদীর ধারে হাঁটতে যাব।",
+      "expectedFindings": [],
+      "rationale": "এটি সাধারণ পরিকল্পনা; এতে গোপন তথ্যের অনুরোধ, চাপ, পুরস্কার দাবি বা লিংক নেই।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-ordinary"
+    },
+    {
+      "id": "H02-BN-002",
+      "language": "bn",
+      "category": "ordinary-benign",
+      "message": "বইটি জানালার পাশের টেবিলে রাখা আছে।",
+      "expectedFindings": [],
+      "rationale": "এটি একটি নিরপেক্ষ অবস্থান-সংক্রান্ত বার্তা।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-ordinary"
+    },
+    {
+      "id": "H02-BN-003",
+      "language": "bn",
+      "category": "ordinary-benign",
+      "message": "আজ বিকেলে বাজার থেকে চাল আর ডাল আনব।",
+      "expectedFindings": [],
+      "rationale": "দৈনন্দিন কেনাকাটার কথায় কোনো লক্ষ্যভিত্তিক সতর্কতার ধরন নেই।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-004",
+      "language": "bn",
+      "category": "ordinary-benign",
+      "message": "আমার মোবাইলের ব্যাটারি বদলাতে হয়েছে।",
+      "expectedFindings": [],
+      "rationale": "সাধারণ অভিজ্ঞতার বর্ণনা; কোনো নির্দেশ বা সংবেদনশীল অনুরোধ নেই।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-005",
+      "language": "bn",
+      "category": "protective-negation",
+      "message": "কাউকে কখনোই আপনার গোপন পিনটি বলবেন না।",
+      "expectedFindings": [],
+      "rationale": "এটি পিন প্রকাশ না করার সুরক্ষামূলক পরামর্শ।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-secret-contrast"
+    },
+    {
+      "id": "H02-BN-006",
+      "language": "bn",
+      "category": "protective-negation",
+      "message": "বার্তার উত্তরে পাসওয়ার্ড লিখে পাঠাবেন না।",
+      "expectedFindings": [],
+      "rationale": "নেতিবাচক নির্দেশটি পাসওয়ার্ড না পাঠাতে বলছে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-secret-contrast"
+    },
+    {
+      "id": "H02-BN-007",
+      "language": "bn",
+      "category": "protective-negation",
+      "message": "এখনই কোনো লিংকে চাপ দেবেন না; আগে নোটিশটি যাচাই করুন।",
+      "expectedFindings": [],
+      "rationale": "প্রথম নির্দেশটি স্পষ্টভাবে ক্লিক না করতে বলছে; এখানে কোনো চাপের দাবি নেই।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-urgency-contrast"
+    },
+    {
+      "id": "H02-BN-008",
+      "language": "bn",
+      "category": "secret-request",
+      "message": "আপনার ওটিপি নম্বরটি লিখে পাঠান।",
+      "expectedFindings": [
+        {
+          "kind": "secret",
+          "rationale": "বার্তাটি ওটিপি পাঠাতে বলছে, যা গোপন যাচাইকরণ তথ্য।"
+        }
+      ],
+      "rationale": "বাংলা লিপিতে ওটিপি-অনুরোধের উদাহরণ।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-secret-contrast"
+    },
+    {
+      "id": "H02-BN-009",
+      "language": "bn",
+      "category": "secret-request",
+      "message": "পার্সেল ছাড়াতে আপনার পিন কোডটি জানান।",
+      "expectedFindings": [
+        { "kind": "secret", "rationale": "এতে পিন কোড জানাতে বলা হয়েছে।" }
+      ],
+      "rationale": "কোনো তাড়াহুড়ো ছাড়া পিন চাওয়ার উদাহরণ।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-010",
+      "language": "bn",
+      "category": "secret-request",
+      "message": "প্রোফাইল চালু করতে অ্যাকাউন্টের পাসওয়ার্ড দিন।",
+      "expectedFindings": [
+        {
+          "kind": "secret",
+          "rationale": "এতে অ্যাকাউন্টের পাসওয়ার্ড দিতে বলা হয়েছে।"
+        }
+      ],
+      "rationale": "বাংলা ক্রিয়া ও পাসওয়ার্ড শব্দের সংমিশ্রণ পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-011",
+      "language": "bn",
+      "category": "secret-request",
+      "message": "নিবন্ধন শেষ করতে যাচাইকরণ কোডটি বলুন।",
+      "expectedFindings": [
+        { "kind": "secret", "rationale": "যাচাইকরণ কোডটি প্রকাশ করতে বলা হয়েছে।" }
+      ],
+      "rationale": "বাংলা লিপিতে যাচাইকরণ কোড চাওয়ার উদাহরণ।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-012",
+      "language": "bn",
+      "category": "secret-request",
+      "message": "সেবা ডেস্কে আপনার গোপন কোডটি জমা দিন।",
+      "expectedFindings": [
+        { "kind": "secret", "rationale": "গোপন কোড জমা দিতে বলা হয়েছে।" }
+      ],
+      "rationale": "গোপন কোড ও জমা দেওয়ার অনুরোধ পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-013",
+      "language": "bn",
+      "category": "urgency-consequence",
+      "message": "অবিলম্বে আবেদনটি সম্পন্ন করুন, নইলে আপনার সেবা বন্ধ হবে।",
+      "expectedFindings": [
+        {
+          "kind": "urgency",
+          "rationale": "অবিলম্বে কাজ করতে বলা হয়েছে এবং সেবা বন্ধের পরিণতি উল্লেখ আছে।"
+        }
+      ],
+      "rationale": "তাৎক্ষণিক নির্দেশ ও সেবা বন্ধের হুমকি একত্রে রয়েছে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-urgency-contrast"
+    },
+    {
+      "id": "H02-BN-014",
+      "language": "bn",
+      "category": "urgency-consequence",
+      "message": "আজই নিশ্চিত না করলে আপনার সিম বন্ধ হয়ে যাবে।",
+      "expectedFindings": [
+        {
+          "kind": "urgency",
+          "rationale": "নিশ্চিত করার সময়সীমার সঙ্গে সিম বন্ধের পরিণতি জুড়েছে।"
+        }
+      ],
+      "rationale": "সিম বন্ধের হুমকি নিয়ে সময়ের চাপ পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-015",
+      "language": "bn",
+      "category": "urgency-consequence",
+      "message": "জরুরি: ফর্মটি এখনই জমা দিন।",
+      "expectedFindings": [
+        {
+          "kind": "urgency",
+          "rationale": "জরুরি লেবেলের সঙ্গে এখনই জমা দেওয়ার নির্দেশ রয়েছে।"
+        }
+      ],
+      "rationale": "বাংলা জরুরি শব্দ ও তাৎক্ষণিক কর্মের নির্দেশ পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-016",
+      "language": "bn",
+      "category": "urgency-consequence",
+      "message": "এখন না করলে আপনার কার্ড বন্ধ হয়ে যাবে।",
+      "expectedFindings": [
+        {
+          "kind": "urgency",
+          "rationale": "এখন পদক্ষেপ না নিলে কার্ড বন্ধের পরিণতি দেখানো হয়েছে।"
+        }
+      ],
+      "rationale": "বাংলা শর্তযুক্ত কার্ড-বন্ধের হুমকি পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-017",
+      "language": "bn",
+      "category": "prize-reward",
+      "message": "পুরস্কারের নিয়মাবলি আগামী সভায় পড়ে শোনানো হবে।",
+      "expectedFindings": [],
+      "rationale": "এটি পুরস্কার-সংক্রান্ত সাধারণ তথ্য, ব্যক্তিগত জয়ের দাবি নয়।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-prize-neutral"
+    },
+    {
+      "id": "H02-BN-018",
+      "language": "bn",
+      "category": "prize-reward",
+      "message": "আপনার কুপনটি লটারিতে নির্বাচিত হয়েছে বলে জানানো হয়েছে।",
+      "expectedFindings": [
+        {
+          "kind": "prize",
+          "rationale": "বার্তাটি প্রাপকের কুপন লটারিতে নির্বাচিত হওয়ার ব্যক্তিগত দাবি করে।"
+        }
+      ],
+      "rationale": "ব্যক্তিগত লটারি-নির্বাচনের দাবি পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-prize-neutral"
+    },
+    {
+      "id": "H02-BN-019",
+      "language": "bn",
+      "category": "prize-reward",
+      "message": "আপনি পুরস্কার পেয়েছেন, সংগ্রহের আগে শর্তগুলো পড়ুন।",
+      "expectedFindings": [
+        {
+          "kind": "prize",
+          "rationale": "প্রাপক পুরস্কার পেয়েছেন বলে ব্যক্তিগত দাবি করা হয়েছে।"
+        }
+      ],
+      "rationale": "পুরস্কার পাওয়ার দাবি ও যাচাই-পরামর্শ একসঙ্গে পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-020",
+      "language": "bn",
+      "category": "informational-link",
+      "message": "সভাস্থলের মানচিত্র দেখুন https://venue.example/map.",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "বার্তায় একটি URL আছে; উপস্থিতি তথ্যগত, প্রতারণার প্রমাণ নয়।"
+        }
+      ],
+      "rationale": "বাংলা বাক্যে HTTPS লিংক উপস্থিতির পরীক্ষা।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-links"
+    },
+    {
+      "id": "H02-BN-021",
+      "language": "bn",
+      "category": "informational-link",
+      "message": "নথির অনুলিপি www.records.test/forms-এ আছে।",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "সমর্থিত www-রূপের ঠিকানাটি লিংক হিসেবে শনাক্ত হওয়ার কথা।"
+        }
+      ],
+      "rationale": "স্কিম ছাড়া www-রূপের ঠিকানা পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-links"
+    },
+    {
+      "id": "H02-BN-022",
+      "language": "bn",
+      "category": "url-http",
+      "message": "নমুনা নির্দেশিকা http://handbook.example/start-এ রাখা হয়েছে।",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় URL উপস্থিত।" },
+        {
+          "kind": "http",
+          "rationale": "ঠিকানাটি HTTP ব্যবহার করে; এটি কেবল দৃশ্যমান প্রোটোকল-তথ্য।"
+        }
+      ],
+      "rationale": "বাংলা বাক্যে HTTP স্কিমের পর্যবেক্ষণ পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-links"
+    },
+    {
+      "id": "H02-BN-023",
+      "language": "bn",
+      "category": "url-credentials",
+      "message": "পরীক্ষার ঠিকানা https://reader:demo@portal.test/help.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় URL উপস্থিত।" },
+        {
+          "kind": "credentials",
+          "rationale": "URL-এ হোস্টের আগে user-information দৃশ্যমান।"
+        }
+      ],
+      "rationale": "Reserved .test ডোমেইনে কৃত্রিম user-information ব্যবহার করা হয়েছে; URL খোলা হবে না।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-024",
+      "language": "bn",
+      "category": "url-ipv4",
+      "message": "নথির নমুনা সার্ভার https://198.51.100.27/info.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় URL উপস্থিত।" },
+        { "kind": "ip", "rationale": "হোস্টটি documentation range-এর IPv4 literal।" }
+      ],
+      "rationale": "TEST-NET-2 documentation IP ব্যবহার করা হয়েছে; কোনো নেটওয়ার্ক যোগাযোগ করা হবে না।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-025",
+      "language": "bn",
+      "category": "url-ipv6",
+      "message": "ল্যাবের কাল্পনিক ঠিকানা https://[2001:db8:2::27]/status.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় URL উপস্থিত।" },
+        {
+          "kind": "ip",
+          "rationale": "হোস্টটি IPv6 literal এবং documentation prefix-এর অন্তর্ভুক্ত।"
+        }
+      ],
+      "rationale": "Documentation IPv6 address ব্যবহার করে বাংলা বাক্যে URL parsing পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-026",
+      "language": "bn",
+      "category": "url-punycode",
+      "message": "উদাহরণ ঠিকানা https://xn--bcher-kva.example/catalog.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় URL উপস্থিত।" },
+        {
+          "kind": "punycode",
+          "rationale": "হোস্টে punycode label দৃশ্যমান; একে একা প্রতারণার প্রমাণ বলা যায় না।"
+        }
+      ],
+      "rationale": "Reserved .example ডোমেইনে punycode-রূপ পরীক্ষা করা হয়েছে; resolve করা হবে না।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-027",
+      "language": "bn",
+      "category": "multiple-urls",
+      "message": "সূচি https://index.example/a এবং http://mirror.test/b ঠিকানায় আছে।",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় একাধিক URL আছে।" },
+        { "kind": "http", "rationale": "দ্বিতীয় URL-টি HTTP ব্যবহার করে।" }
+      ],
+      "rationale": "এক বাক্যে HTTPS ও HTTP URL extraction পরীক্ষা করে; ফলাফল finding-kind-এর উপস্থিতি হিসেবে গণনা হবে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-multiple"
+    },
+    {
+      "id": "H02-BN-028",
+      "language": "bn",
+      "category": "unusual-url-representation",
+      "message": "বড় হাতের স্কিমের নমুনা HTTPS://guide.example/INDEX.",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "স্কিমের বড় হাতের অক্ষরসহ URL শনাক্ত হওয়ার কথা।"
+        }
+      ],
+      "rationale": "বাংলা লেখার মধ্যে uppercase scheme পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-029",
+      "language": "bn",
+      "category": "unusual-url-representation",
+      "message": "বন্ধনীর উদাহরণ: https://manual.example/page_(draft).",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "পথে বন্ধনী থাকলেও URL উপস্থিতি শনাক্ত হওয়ার কথা।"
+        }
+      ],
+      "rationale": "URL-এর পরে বন্ধনী-জাতীয় punctuation handling পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-BN-030",
+      "language": "bn",
+      "category": "multiple-urls",
+      "message": "দেখুন www.archive.test/x, https://[2001:db8:3::8]/y এবং http://203.0.113.8/z.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় একাধিক সমর্থিত URL রূপ আছে।" },
+        { "kind": "http", "rationale": "একটি URL HTTP ব্যবহার করে।" },
+        {
+          "kind": "ip",
+          "rationale": "URL-গুলোর মধ্যে documentation IPv4 ও IPv6 literal host আছে।"
+        }
+      ],
+      "rationale": "www, IPv6 এবং TEST-NET-3 IPv4 উদাহরণ একত্রে রয়েছে; কোনো ঠিকানায় সংযোগ করা হবে না।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "BN-multiple"
+    },
+    {
+      "id": "H02-MX-001",
+      "language": "mixed",
+      "category": "ordinary-benign",
+      "message": "Kal office-er shamne cha khete boshi.",
+      "expectedFindings": [],
+      "rationale": "এটি সাধারণ Banglish পরিকল্পনা এবং এতে লক্ষ্যভিত্তিক সতর্কতার শব্দ নেই।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-ordinary"
+    },
+    {
+      "id": "H02-MX-002",
+      "language": "mixed",
+      "category": "ordinary-benign",
+      "message": "Ami file-ta email-e pathiyechi, pore dekho.",
+      "expectedFindings": [],
+      "rationale": "এখানে file/email নিয়ে সাধারণ কথোপকথন; authentication secret চাওয়া হয়নি।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-ordinary"
+    },
+    {
+      "id": "H02-MX-003",
+      "language": "mixed",
+      "category": "ordinary-benign",
+      "message": "Bus ta station-e shomoy moto pouchabe.",
+      "expectedFindings": [],
+      "rationale": "এটি নিরপেক্ষ যাত্রার তথ্য, চাপ দিয়ে কাজ করানোর নির্দেশ নয়।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-004",
+      "language": "mixed",
+      "category": "ordinary-benign",
+      "message": "Amar shopping-er reward points app-e dekha jacche.",
+      "expectedFindings": [],
+      "rationale": "সাধারণ reward points-এর উল্লেখ ব্যক্তিগত পুরস্কার দাবি করে না।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-prize-neutral"
+    },
+    {
+      "id": "H02-MX-005",
+      "language": "mixed",
+      "category": "protective-negation",
+      "message": "Kauke OTP bolben na, eta private rakhben.",
+      "expectedFindings": [],
+      "rationale": "Banglish বাক্যটি OTP না বলতে এবং গোপন রাখতে পরামর্শ দেয়।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-secret-contrast"
+    },
+    {
+      "id": "H02-MX-006",
+      "language": "mixed",
+      "category": "protective-negation",
+      "message": "Password ta message-e type korben na.",
+      "expectedFindings": [],
+      "rationale": "এটি password না লেখার নেতিবাচক নির্দেশ, অনুরোধ নয়।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-secret-contrast"
+    },
+    {
+      "id": "H02-MX-007",
+      "language": "mixed",
+      "category": "protective-negation",
+      "message": "Ekhoni click korar dorkar nei; age notice-ta porun.",
+      "expectedFindings": [],
+      "rationale": "এটি স্পষ্টভাবে এখনই ক্লিকের প্রয়োজন নেই বলে, চাপের নির্দেশ নয়।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-urgency-contrast"
+    },
+    {
+      "id": "H02-MX-008",
+      "language": "mixed",
+      "category": "secret-request",
+      "message": "Apnar OTP ta call-e bole din.",
+      "expectedFindings": [
+        { "kind": "secret", "rationale": "এতে ফোনে OTP জানাতে বলা হয়েছে।" }
+      ],
+      "rationale": "Banglish নির্দেশে OTP ও প্রকাশের ক্রিয়া আছে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-secret-contrast"
+    },
+    {
+      "id": "H02-MX-009",
+      "language": "mixed",
+      "category": "secret-request",
+      "message": "PIN code-ta desk-e submit korun.",
+      "expectedFindings": [
+        { "kind": "secret", "rationale": "এতে PIN code জমা দিতে বলা হয়েছে।" }
+      ],
+      "rationale": "English secret term ও English verb-এর সঙ্গে Banglish grammar পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-010",
+      "language": "mixed",
+      "category": "secret-request",
+      "message": "Account password ta ekhane enter korun.",
+      "expectedFindings": [
+        {
+          "kind": "secret",
+          "rationale": "অ্যাকাউন্টের password প্রবেশ করাতে বলা হয়েছে।"
+        }
+      ],
+      "rationale": "কোড-মিশ্র বাক্যে password ও প্রবেশের নির্দেশ পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-011",
+      "language": "mixed",
+      "category": "secret-request",
+      "message": "Registration finish korte verification code-ta pathan.",
+      "expectedFindings": [
+        { "kind": "secret", "rationale": "যাচাইকরণ কোড পাঠাতে বলা হয়েছে।" }
+      ],
+      "rationale": "English code wording ও Banglish পাঠান ক্রিয়া একত্রে রয়েছে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-012",
+      "language": "mixed",
+      "category": "secret-request",
+      "message": "Passcode ta support agent-ke share korun.",
+      "expectedFindings": [
+        { "kind": "secret", "rationale": "Passcode share করতে বলা হয়েছে।" }
+      ],
+      "rationale": "একটি passcode চাওয়ার সরাসরি মিশ্র-ভাষার উদাহরণ।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-013",
+      "language": "mixed",
+      "category": "urgency-consequence",
+      "message": "Ekhoni form submit korun, nahole service bondho hoye jabe.",
+      "expectedFindings": [
+        {
+          "kind": "urgency",
+          "rationale": "এখনই জমা দেওয়ার নির্দেশের সঙ্গে সেবা বন্ধের পরিণতি আছে।"
+        }
+      ],
+      "rationale": "Banglish সময়-চাপ ও পরিণতির ভাষা একত্রে পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-urgency-contrast"
+    },
+    {
+      "id": "H02-MX-014",
+      "language": "mixed",
+      "category": "urgency-consequence",
+      "message": "Your SIM will be off today, tai ekhoni confirm korun.",
+      "expectedFindings": [
+        {
+          "kind": "urgency",
+          "rationale": "SIM বন্ধ হওয়ার দাবি এবং এখনই নিশ্চিত করার নির্দেশ চাপ তৈরি করে।"
+        }
+      ],
+      "rationale": "English consequence ও Banglish তাৎক্ষণিক নির্দেশের মিশ্রণ পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-015",
+      "language": "mixed",
+      "category": "urgency-consequence",
+      "message": "Urgent response chai: apnar renewal ekhoni complete korun.",
+      "expectedFindings": [
+        {
+          "kind": "urgency",
+          "rationale": "Urgent-response ভাষা ও এখনই সম্পন্ন করার নির্দেশ আছে।"
+        }
+      ],
+      "rationale": "ইংরেজি urgency marker ও মিশ্র নির্দেশ পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-016",
+      "language": "mixed",
+      "category": "urgency-consequence",
+      "message": "Within 8 minutes account verify korun, otherwise service suspend hobe.",
+      "expectedFindings": [
+        {
+          "kind": "urgency",
+          "rationale": "স্বল্প deadline-এর সঙ্গে সেবা স্থগিত হওয়ার পরিণতি আছে।"
+        }
+      ],
+      "rationale": "কোড-মিশ্র সময়সীমা ও consequence wording পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-017",
+      "language": "mixed",
+      "category": "prize-reward",
+      "message": "App-er reward balance 300 point hoyeche.",
+      "expectedFindings": [],
+      "rationale": "এটি পয়েন্ট ব্যালেন্সের নিরপেক্ষ বিবরণ, পুরস্কার জেতার দাবি নয়।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-prize-neutral"
+    },
+    {
+      "id": "H02-MX-018",
+      "language": "mixed",
+      "category": "prize-reward",
+      "message": "You won a cash prize, details pore check korun.",
+      "expectedFindings": [
+        {
+          "kind": "prize",
+          "rationale": "এতে প্রাপক cash prize জিতেছেন বলে দাবি করা হয়েছে।"
+        }
+      ],
+      "rationale": "ইংরেজি prize claim-এর সঙ্গে Banglish যাচাই-পরামর্শ রয়েছে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-prize-neutral"
+    },
+    {
+      "id": "H02-MX-019",
+      "language": "mixed",
+      "category": "prize-reward",
+      "message": "Apni lottery-te বিজয়ী, reward claim korte terms dekhen.",
+      "expectedFindings": [
+        {
+          "kind": "prize",
+          "rationale": "লটারিতে বিজয়ী হওয়া ও পুরস্কার দাবি করার ব্যক্তিগত কথা আছে।"
+        }
+      ],
+      "rationale": "Banglish ও বাংলা prize wording-এর মিশ্রণ পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-020",
+      "language": "mixed",
+      "category": "informational-link",
+      "message": "Meeting-er map https://rooms.example/map-e paben.",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "বার্তায় URL আছে; উপস্থিতি শুধু তথ্যগত এবং fraud verdict নয়।"
+        }
+      ],
+      "rationale": "কোড-মিশ্র সাধারণ বাক্যে HTTPS লিংক পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-links"
+    },
+    {
+      "id": "H02-MX-021",
+      "language": "mixed",
+      "category": "informational-link",
+      "message": "Form-er copy www.forms.test/blank-e ache.",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "সমর্থিত www URL রূপটি লিংক হিসেবে শনাক্ত হওয়ার কথা।"
+        }
+      ],
+      "rationale": "Banglish বাক্যে স্কিমবিহীন www-রূপ পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-links"
+    },
+    {
+      "id": "H02-MX-022",
+      "language": "mixed",
+      "category": "url-http",
+      "message": "Sample manual-ta http://guide.example/setup-e ache.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় একটি URL আছে।" },
+        {
+          "kind": "http",
+          "rationale": "URL-টি HTTP ব্যবহার করে; এটি সীমিত কাঠামোগত পর্যবেক্ষণ।"
+        }
+      ],
+      "rationale": "Banglish বাক্যে HTTP scheme indicator পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-links"
+    },
+    {
+      "id": "H02-MX-023",
+      "language": "mixed",
+      "category": "url-credentials",
+      "message": "Demo login: https://tester:sample@account.test/help.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় একটি URL আছে।" },
+        {
+          "kind": "credentials",
+          "rationale": "URL-এ host-এর আগে user-information রয়েছে।"
+        }
+      ],
+      "rationale": "কৃত্রিম credential text ও reserved .test host; কোনো login বা request হবে না।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-024",
+      "language": "mixed",
+      "category": "url-ipv4",
+      "message": "Test address-ta https://203.0.113.44/check-e.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় URL আছে।" },
+        { "kind": "ip", "rationale": "Host-টি TEST-NET-3 documentation IPv4 address।" }
+      ],
+      "rationale": "ডকুমেন্টেশন IPv4 address ব্যবহার করে মিশ্র-বাক্যের URL পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-025",
+      "language": "mixed",
+      "category": "url-ipv6",
+      "message": "Lab endpoint: https://[2001:db8:4::44]/check — ekhane kono request noy.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় একটি URL আছে।" },
+        { "kind": "ip", "rationale": "Host-টি documentation IPv6 literal।" }
+      ],
+      "rationale": "শুধু string parsing; এই documentation address-এ কোনো request করা হবে না।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-026",
+      "language": "mixed",
+      "category": "url-punycode",
+      "message": "Example host: https://xn--caf-dma.test/page-ta dekhen.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় URL আছে।" },
+        {
+          "kind": "punycode",
+          "rationale": "Host-এ punycode label আছে; এর উপস্থিতি একা maliciousness প্রমাণ করে না।"
+        }
+      ],
+      "rationale": "Reserved .test host ও punycode label পরীক্ষা করে; DNS ব্যবহার হয় না।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-027",
+      "language": "mixed",
+      "category": "multiple-urls",
+      "message": "Compare https://desk.example/a with http://mirror.test/b, tarpor janan.",
+      "expectedFindings": [
+        { "kind": "link", "rationale": "বার্তায় একাধিক URL আছে।" },
+        { "kind": "http", "rationale": "একটি URL HTTP ব্যবহার করে।" }
+      ],
+      "rationale": "দুটি reserved-host URL এবং finding-kind উপস্থিতি গণনা পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-multiple"
+    },
+    {
+      "id": "H02-MX-028",
+      "language": "mixed",
+      "category": "unusual-url-representation",
+      "message": "Uppercase sample HTTPS://manual.test/INDEX?lang=bn dekho.",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "Case-insensitive scheme-সহ URL শনাক্ত হওয়ার কথা।"
+        }
+      ],
+      "rationale": "Banglish text-এ uppercase scheme ও query string পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-029",
+      "language": "mixed",
+      "category": "unusual-url-representation",
+      "message": "Path-er example https://archive.test/page_(draft) dekhte paro.",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "বন্ধনী-সহ path-এও URL উপস্থিতি শনাক্ত হওয়ার কথা।"
+        }
+      ],
+      "rationale": "মিশ্র ভাষার বাক্যে URL punctuation ও parentheses পরীক্ষা করে।",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review"
+    },
+    {
+      "id": "H02-MX-030",
+      "language": "mixed",
+      "category": "multiple-urls",
+      "message": "Links: www.index.test/a, https://[2001:db8:5::3]/b, https://xn--caf-dma.example/c.",
+      "expectedFindings": [
+        {
+          "kind": "link",
+          "rationale": "বার্তায় www, IPv6 এবং punycode host-সহ একাধিক URL আছে।"
+        },
+        {
+          "kind": "ip",
+          "rationale": "একটি URL-এ documentation IPv6 literal host রয়েছে।"
+        },
+        { "kind": "punycode", "rationale": "একটি host-এ punycode label রয়েছে।" }
+      ],
+      "rationale": "একত্রে অস্বাভাবিক host রূপ পরীক্ষা করে; reserved documentation hosts-এ কোনো network request হবে না.",
+      "labelStatus": "DRAFT",
+      "reviewStatus": "requires-human-review",
+      "contrastGroupId": "MX-multiple"
+    }
+  ]
+}

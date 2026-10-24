@@ -1,0 +1,178 @@
+{
+  "benchmark": "ShurokkhaBench",
+  "version": "0.2.0-candidate",
+  "evaluationStatus": "DRAFT — labels require human review",
+  "reviewStatus": "not independently reviewed",
+  "interpretation": "Agreement with draft synthetic intended-indicator labels only. These results are not real-world phishing or fraud-detection effectiveness estimates.",
+  "dataset": {
+    "file": "research/shurokkhabench-v0.2-challenge.json",
+    "sha256": "82e291b2571a82794299ea72cbdae302604e6e5d826a0b94ab148afa86bb1f88",
+    "caseCount": 90,
+    "countsByLanguage": {
+      "en": 30,
+      "bn": 30,
+      "mixed": 30
+    }
+  },
+  "exactFindingSetAgreement": {
+    "cases": 90,
+    "exactFindingSetMatches": 85,
+    "exactFindingSetMatchRate": 0.9444
+  },
+  "perLanguageExactFindingSetAgreement": [
+    {
+      "language": "en",
+      "cases": 30,
+      "exactFindingSetMatches": 29,
+      "exactFindingSetMatchRate": 0.9667
+    },
+    {
+      "language": "bn",
+      "cases": 30,
+      "exactFindingSetMatches": 28,
+      "exactFindingSetMatchRate": 0.9333
+    },
+    {
+      "language": "mixed",
+      "cases": 30,
+      "exactFindingSetMatches": 28,
+      "exactFindingSetMatchRate": 0.9333
+    }
+  ],
+  "perKind": [
+    {
+      "kind": "secret",
+      "cases": 90,
+      "expectedPositive": 15,
+      "tp": 15,
+      "fp": 1,
+      "fn": 0,
+      "tn": 74,
+      "precision": 0.9375,
+      "recall": 1,
+      "f1": 0.9677
+    },
+    {
+      "kind": "urgency",
+      "cases": 90,
+      "expectedPositive": 12,
+      "tp": 11,
+      "fp": 1,
+      "fn": 1,
+      "tn": 77,
+      "precision": 0.9167,
+      "recall": 0.9167,
+      "f1": 0.9167
+    },
+    {
+      "kind": "prize",
+      "cases": 90,
+      "expectedPositive": 5,
+      "tp": 3,
+      "fp": 0,
+      "fn": 2,
+      "tn": 85,
+      "precision": 1,
+      "recall": 0.6,
+      "f1": 0.75
+    },
+    {
+      "kind": "link",
+      "cases": 90,
+      "expectedPositive": 33,
+      "tp": 33,
+      "fp": 0,
+      "fn": 0,
+      "tn": 57,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    },
+    {
+      "kind": "http",
+      "cases": 90,
+      "expectedPositive": 8,
+      "tp": 8,
+      "fp": 0,
+      "fn": 0,
+      "tn": 82,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    },
+    {
+      "kind": "credentials",
+      "cases": 90,
+      "expectedPositive": 3,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "tn": 87,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    },
+    {
+      "kind": "ip",
+      "cases": 90,
+      "expectedPositive": 9,
+      "tp": 9,
+      "fp": 0,
+      "fn": 0,
+      "tn": 81,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    },
+    {
+      "kind": "punycode",
+      "cases": 90,
+      "expectedPositive": 4,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "tn": 86,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    }
+  ],
+  "mismatchCount": 5,
+  "mismatches": [
+    {
+      "id": "H02-EN-018",
+      "language": "en",
+      "category": "prize-reward",
+      "expectedKinds": ["prize"],
+      "observedKinds": []
+    },
+    {
+      "id": "H02-BN-013",
+      "language": "bn",
+      "category": "urgency-consequence",
+      "expectedKinds": ["urgency"],
+      "observedKinds": []
+    },
+    {
+      "id": "H02-BN-018",
+      "language": "bn",
+      "category": "prize-reward",
+      "expectedKinds": ["prize"],
+      "observedKinds": []
+    },
+    {
+      "id": "H02-MX-006",
+      "language": "mixed",
+      "category": "protective-negation",
+      "expectedKinds": [],
+      "observedKinds": ["secret"]
+    },
+    {
+      "id": "H02-MX-007",
+      "language": "mixed",
+      "category": "protective-negation",
+      "expectedKinds": [],
+      "observedKinds": ["urgency"]
+    }
+  ]
+}

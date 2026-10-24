@@ -40,11 +40,25 @@ From the project root, run:
 npm run test:run
 ```
 
-The test suite includes these benchmark cases and writes a result snapshot to:
+The v0.1 test suite checks the existing historical result snapshot at:
 
 `research/results/shurokkhabench-v0.1-results.json`
 
-The report includes the dataset identifier, case-level expected and observed finding kinds, exact-set agreement, and per-kind metrics. Review mismatches before committing the snapshot.
+Ordinary test runs do not write or refresh this file. The test compares the
+current v0.1 evaluation with the committed snapshot, excluding only its
+historical generation timestamp.
+
+The separate v0.2 draft challenge evaluator runs with:
+
+```powershell
+npm run evaluate:v0.2
+```
+
+It writes `research/results/shurokkhabench-v0.2-candidate-results.json` without
+changing the v0.1 snapshot. The new corpus labels remain DRAFT until an
+independent blinded human review is completed. The candidate report is
+agreement with synthetic intended-indicator labels, not real-world
+fraud-detection effectiveness.
 
 ## Versioning
 

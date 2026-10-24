@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { analyzeMessage, type FindingKind } from '../src/lib/analyzeMessage'
@@ -21,9 +21,16 @@ interface BenchmarkDataset {
 
 const root = process.cwd()
 const datasetPath = resolve(root, 'research', 'shurokkhabench-v0.1.json')
-const resultsDir = resolve(root, 'research', 'results')
-const resultsPath = resolve(resultsDir, 'shurokkhabench-v0.1-results.json')
+const resultsPath = resolve(
+  root,
+  'research',
+  'results',
+  'shurokkhabench-v0.1-results.json',
+)
 const dataset = JSON.parse(readFileSync(datasetPath, 'utf8')) as BenchmarkDataset
+const historicalSnapshot = JSON.parse(readFileSync(resultsPath, 'utf8')) as ReturnType<
+  typeof summarize
+>
 const supportedKinds: FindingKind[] = [
   'secret',
   'urgency',
@@ -135,7 +142,9 @@ describe('ShurokkhaBench v0.1 synthetic development corpus', () => {
     expect(dataset.cases.length).toBeGreaterThanOrEqual(30)
 
     for (const caseItem of dataset.cases) {
-      expect(caseItem.expectedKinds.every((kind) => supportedKinds.includes(kind))).toBe(true)
+      expect(
+        caseItem.expectedKinds.every((kind) => supportedKinds.includes(kind)),
+      ).toBe(true)
     }
   })
 
@@ -143,11 +152,10 @@ describe('ShurokkhaBench v0.1 synthetic development corpus', () => {
     expect(observedKinds(caseItem.message)).toEqual([...caseItem.expectedKinds].sort())
   })
 
-  it('writes a reproducible case-level and per-kind metrics snapshot', () => {
+  it('matches the historical snapshot without rewriting it', () => {
     const report = summarize(dataset.cases)
-    mkdirSync(resultsDir, { recursive: true })
-    writeFileSync(resultsPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8')
-
+    report.generatedAt = historicalSnapshot.generatedAt
+    expect(report).toEqual(historicalSnapshot)
     expect(report.caseCount).toBe(dataset.cases.length)
     expect(report.perKind).toHaveLength(supportedKinds.length)
     expect(report.perLanguage.every((group) => group.cases > 0)).toBe(true)
