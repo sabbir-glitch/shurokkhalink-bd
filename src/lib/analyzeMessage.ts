@@ -1,5 +1,12 @@
 export type FindingKind =
-  'secret' | 'urgency' | 'prize' | 'link' | 'http' | 'credentials' | 'ip' | 'punycode'
+  | 'secret'
+  | 'urgency'
+  | 'prize'
+  | 'link'
+  | 'http'
+  | 'credentials'
+  | 'ip'
+  | 'punycode'
 
 export interface Finding {
   id: string
@@ -10,8 +17,16 @@ export interface Finding {
 const secretRequestPattern =
   /(?:\b(?:send|share|tell|provide|give|reply with|enter|submit|confirm|verify)\b.{0,55}\b(?:otp|pin|password|passcode|verification code|security code|one[- ]time code)\b|\b(?:otp|pin|password|passcode|verification code|security code|one[- ]time code)\b.{0,55}\b(?:send|share|tell|provide|give|reply|enter|submit|confirm|verify)\b|\b(?:otp|pin|password|passcode|verification code|security code|one[- ]time code)\b.{0,45}(?:পাঠান|দিন|শেয়ার|শেয়ার|বলুন|জানান|দিতে|লিখুন|দরকার|চাই)|(?:পাঠান|দিন|শেয়ার|শেয়ার|বলুন|জানান|দিতে|লিখুন|দরকার|চাই).{0,45}\b(?:otp|pin|password|passcode|verification code|security code|one[- ]time code)\b|(?:ওটিপি|ও টি পি|পিন|পাসওয়ার্ড|পাসওয়ার্ড|যাচাইকরণ কোড|ভেরিফিকেশন কোড|গোপন কোড).{0,45}(?:পাঠান|দিন|শেয়ার|শেয়ার|বলুন|জানান|দিতে|লিখুন|দরকার|চাই)|(?:পাঠান|দিন|শেয়ার|শেয়ার|বলুন|জানান|দিতে|লিখুন|দরকার|চাই).{0,45}(?:ওটিপি|ও টি পি|পিন|পাসওয়ার্ড|পাসওয়ার্ড|যাচাইকরণ কোড|ভেরিফিকেশন কোড|গোপন কোড))/iu
 
+// Targeted Latin-script Banglish patterns; these complement, rather than replace,
+// the English and native-Bangla patterns above.
+const banglishSecretRequestPattern =
+  /(?:\b(?:otp|o\s*t\s*p|pin|password|passcode|verification code|security code|one[- ]time code)\b.{0,55}\b(?:send|share|tell|provide|give|reply|enter|submit|confirm|verify|pathan|pathaben|den|diben|din|korun|koren|koro|korben)\b|\b(?:send|share|tell|provide|give|reply|enter|submit|confirm|verify|pathan|pathaben|den|diben|din|korun|koren|koro|korben)\b.{0,55}\b(?:otp|o\s*t\s*p|pin|password|passcode|verification code|security code|one[- ]time code)\b)/iu
+
 const urgencyPattern =
   /\b(?:act now|within \d+ (?:minutes?|hours?)|(?:will be|may be|is about to be)\s+(?:blocked|suspended|closed))\b|\b(?:act|respond|reply|complete|verify|send|share|submit|pay|click|confirm|provide|update)\b[^.!?।\n]{0,20}\b(?:immediately|urgently|right away)\b|\b(?:immediately|right away)\s+(?:act|respond|reply|complete|verify|send|share|submit|pay|click|confirm|provide|update)\b|\burgent(?:ly)?(?=\s*(?:[:!—-]|\b(?:action|response|verification|payment|deadline|required)\b))|(?:অবিলম্বে|জরুরি)\s*(?::|!|।)|(?:অবিলম্বে|জরুরি)[^.!?।\n]{0,15}(?:করুন|পাঠান|দিন|ক্লিক|যোগাযোগ|জমা|দাবি|শেষ|যাচাই)|দ্রুত করুন|এখন না করলে|এখনই.{0,15}(?:করুন|পাঠান|দিন|ক্লিক|যোগাযোগ|জমা|দাবি|না করলে)|আজই.{0,15}(?:করুন|পাঠান|দিন|ক্লিক|জমা|দাবি|না করলে|শেষ)|(?:অ্যাকাউন্ট|সেবা|সিম|কার্ড).{0,15}(?:বন্ধ হয়ে যাবে|বন্ধ হয়ে যাবে|ব্লক হবে)|(?:বন্ধ হয়ে যাবে|বন্ধ হয়ে যাবে|ব্লক হবে).{0,15}(?:অ্যাকাউন্ট|সেবা|সিম|কার্ড)/iu
+
+const banglishUrgencyPattern =
+  /\b(?:ekhoni|ekhuni|ekhonoi|taratari|joldi)\b.{0,35}\b(?:act|respond|reply|complete|verify|send|share|submit|pay|click|confirm|provide|update|call|pathan|pathaben|den|diben|din|korun|koren|koro|korben)\b|\b(?:act|respond|reply|complete|verify|send|share|submit|pay|click|confirm|provide|update|call|pathan|pathaben|den|diben|din|korun|koren|koro|korben)\b.{0,35}\b(?:ekhoni|ekhuni|ekhonoi|taratari|joldi)\b|\b(?:account|sim|card|service)\b.{0,30}\b(?:bondho|block|suspend|off)\b.{0,25}\b(?:hoye jabe|hobe)\b/iu
 
 const prizePattern =
   /\b(?:you (?:have )?won|you(?:'re| are) (?:a )?winner|selected as (?:a )?winner|claim (?:your )?(?:money|reward|prize)|free (?:gift|money)|cash prize|unclaimed funds|win (?:a |the )?(?:prize|lottery|cash|money)|(?:prize|reward|lottery).{0,35}(?:claim|winner|won|selected))\b|অভিনন্দন.{0,35}(?:জিতেছেন|পুরস্কার|লটারি)|(?:জিতেছেন|জিতেছ|বিজয়ী|বিজয়ী).{0,25}(?:টাকা|পুরস্কার|লটারি|উপহার)|(?:টাকা|পুরস্কার|লটারি|উপহার).{0,30}(?:জিতেছেন|জিতেছ|দাবি|পেতে|পেয়েছেন|পেয়েছেন)|(?:পুরস্কার|লটারি).{0,20}(?:দাবি|জিত|পেতে|ক্লিক)/iu
@@ -24,21 +39,23 @@ function findEvidence(text: string, pattern: RegExp): string | undefined {
 }
 
 function findSecretRequest(text: string): string | undefined {
-  const pattern = new RegExp(
-    secretRequestPattern.source,
-    `${secretRequestPattern.flags}g`,
+  const combinedSecretPattern = new RegExp(
+    `(?:${secretRequestPattern.source})|(?:${banglishSecretRequestPattern.source})`,
+    'giu',
   )
 
-  for (const match of text.matchAll(pattern)) {
+  for (const match of text.matchAll(combinedSecretPattern)) {
     const start = match.index ?? 0
     const end = start + match[0].length
     const precedingText = text.slice(Math.max(0, start - 50), start)
-    const followingText = text.slice(end, end + 12)
+    const followingText = text.slice(end, end + 18)
     const negatedBefore =
-      /(?:\b(?:do not|don't|never)\b|কখনোই?)[^.!?।\n]{0,35}$/iu.test(precedingText)
+      /(?:\b(?:do not|don't|never)\b|\b(?:kokhono(?:i)?|kokhonoi)\b|কখনোই?)[^.!?।\n]{0,35}$/iu.test(
+        precedingText,
+      )
     const crossesSentenceBoundary = /[.!?।\n]/u.test(match[0])
     const negatedAfter =
-      /^\s*(?:not\b|না(?=[\s।.!?,;:]|$)|(?:করবেন|দেবেন|পাঠাবেন|জানাবেন|লিখবেন)\s+না(?=[\s।.!?,;:]|$))/iu.test(
+      /^\s*(?:not\b|না(?=[\s।.!?,;:]|$)|(?:করবেন|দেবেন|পাঠাবেন|জানাবেন|লিখবেন)\s+না(?=[\s।.!?,;:]|$)|(?:korben|korbo|korbe|koro|korun|koren|diben|dibo|den|din|pathan|pathaben|bolben|bolbo|likhben|likho)\s+na\b)/iu.test(
         followingText,
       )
 
@@ -72,7 +89,6 @@ function inspectLinks(text: string): Finding[] {
 
     const id = `link-${index + 1}`
     findings.push({ id, kind: 'link', evidence: url })
-
     try {
       const parsed = new URL(
         url.toLowerCase().startsWith('www.') ? `https://${url}` : url,
@@ -101,7 +117,6 @@ function inspectLinks(text: string): Finding[] {
       // A malformed URL is still shown as a link; no structural claim is made.
     }
   })
-
   return findings
 }
 
@@ -111,12 +126,12 @@ function inspectLinks(text: string): Finding[] {
  */
 export function analyzeMessage(message: string): Finding[] {
   if (typeof message !== 'string' || !message.trim()) return []
-
   const findings: Finding[] = []
   const secretEvidence = findSecretRequest(message)
-  const urgencyEvidence = findEvidence(message, urgencyPattern)
+  const urgencyEvidence =
+    findEvidence(message, urgencyPattern) ??
+    findEvidence(message, banglishUrgencyPattern)
   const prizeEvidence = findEvidence(message, prizePattern)
-
   if (secretEvidence) {
     findings.push({ id: 'secret-request', kind: 'secret', evidence: secretEvidence })
   }
