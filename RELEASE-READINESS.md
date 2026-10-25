@@ -1,6 +1,6 @@
 # ShurokkhaLink BD — v0.1 release-readiness record
 
-**Status:** Public demonstration deployed; research and production-readiness work remain in progress.
+**Status:** Public demonstration deployed; the local source now includes a consent-gated Groq Worker integration, which has not been deployed or independently evaluated.
 **Last evidence update:** 24 October 2026.
 
 ## Evidence recorded
@@ -16,7 +16,7 @@ These are project-owner terminal/dashboard observations recorded in the project 
 
 ## Privacy and application scope
 
-The application is designed to analyze submitted text locally in the browser. The source code is intended not to send message content to an analysis service, persist it in browser storage, or log its contents. The analyzer does not fetch or open submitted URLs. A source-level automated test covers no outbound analysis requests, storage, cookie writes, or message-content console writes under its test conditions.
+The browser shows a redacted preview, then sends the original submitted text to the Worker only after explicit user consent. When the `GROQ_API_KEY` Worker Secret is configured, the Worker sends the original text to Groq for translation, then sends the English translation for analysis. The app does not persist submitted text in browser storage or log message contents or credentials. The analyzer does not fetch or open submitted URLs. Groq's data-handling and retention policies apply to the text it receives. Automated provider tests use mocks and do not require a real key.
 
 This is not a claim that no network traffic exists: loading the website requires requests to the hosting provider, which may process ordinary connection metadata. Browser extensions, the user's device, and the hosting provider are outside the application's direct control.
 
@@ -46,8 +46,9 @@ Header presence was verified for the homepage response only. This is not a full 
 - Run keyboard-only, screen-reader, contrast, and real mobile viewport checks; record the actual outcomes.
 - If conducting user testing, record the procedure, participant consent, anonymized observations, and limitations. Do not invent or infer participant results.
 - Verify the Git push-to-deployment cycle with one controlled, harmless change and confirm its successful completion in Cloudflare.
+- Before configuring the Groq Worker Secret, verify provider data-handling/retention terms and confirm that the account can be used without enabling paid billing. Do not configure a paid fallback.
 - Recheck the live response headers and browser network behavior after relevant configuration or application changes.
 
 ## Release statement
 
-ShurokkhaLink BD v0.1 is a live educational demonstration of a local, deterministic message-awareness checker. It is not a fraud-verification service, does not certify URLs as safe, and should not be relied on as the sole basis for security or financial decisions. It is not yet supported by an independent real-world accuracy study or a complete production security/accessibility review.
+ShurokkhaLink BD remains an educational demonstration, not a fraud-verification service. AI findings may be inaccurate or incomplete, do not certify URLs as safe, and should not be relied on as the sole basis for security or financial decisions. The Worker integration requires a separately configured Cloudflare Secret and is not evidence of a deployed or independently validated provider setup. The project is not yet supported by an independent real-world accuracy study or a complete production security/accessibility review.

@@ -14,5 +14,10 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["worker/aiApi.ts", "worker/index.ts", "src/lib/aiContracts.ts"]
+  "include": [
+    "worker/aiApi.ts",
+    "worker/groqProvider.ts",
+    "worker/index.ts",
+    "src/lib/aiContracts.ts"
+  ]
 }

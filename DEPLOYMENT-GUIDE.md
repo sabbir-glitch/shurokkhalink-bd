@@ -34,7 +34,7 @@ Do not run `git add -A` blindly when unrelated or unexpected files are present. 
 
 ## Build configuration
 
-The Cloudflare dashboard currently shows the GitHub repository `sabbir-glitch/shurokkhalink-bd`, production branch `main`, build command `npm run build`, and deploy command `npx wrangler deploy`. The project root is the repository root. No application API keys or environment variables are required for the current frontend.
+The Cloudflare dashboard currently shows the GitHub repository `sabbir-glitch/shurokkhalink-bd`, production branch `main`, build command `npm run build`, and deploy command `npx wrangler deploy`. The project root is the repository root. To enable AI analysis, configure `GROQ_API_KEY` as a Cloudflare Worker Secret separately; never add it to repository files, Vite/frontend environment variables, or `wrangler.jsonc`. Without the secret, the AI API remains unavailable. See [`worker/README.md`](worker/README.md) for details.
 
 `public/_headers` is copied into `dist/_headers` by the Vite build. The live response was checked on 24 October 2026 and included Content Security Policy, Permissions Policy, Referrer Policy, `X-Content-Type-Options`, and `X-Frame-Options`. Cloudflare Workers documents custom `_headers` rules for static-asset responses; changes to Worker-generated responses may need headers set in Worker code instead. See the official [Cloudflare Workers headers documentation](https://developers.cloudflare.com/workers/static-assets/headers/).
 
@@ -43,7 +43,7 @@ The Cloudflare dashboard currently shows the GitHub repository `sabbir-glitch/sh
 - Keep the project on the available free GitHub and Cloudflare offerings.
 - Use the supplied `workers.dev` hostname; no custom domain is needed.
 - Do not enable paid services, add paid integrations, or buy a domain without checking the cost and obtaining explicit approval.
-- The current application is a static frontend. Do not add Workers API code, databases, telemetry, external AI, or other services unless there is a clear need and the costs and privacy impact have been reviewed first.
+- Do not enable paid billing or paid fallbacks. If free provider usage is unavailable or exhausted, keep the API unavailable rather than enabling paid usage.
 
 ## Important limitations
 

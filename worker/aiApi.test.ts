@@ -466,4 +466,26 @@ describe('Cloudflare Worker AI API foundation', () => {
     expect(response).toBe(assetResponse)
     expect(assetFetch).toHaveBeenCalledOnce()
   })
+
+  it('reads Groq credentials from the Worker environment without exposing them', async () => {
+    const { default: worker } = await import('./index')
+    const secret = 'test-groq-secret'
+    const response = await worker.fetch(
+      new Request('https://shurokkha.example/api/ai/status'),
+      {
+        ASSETS: { fetch: vi.fn() },
+        GROQ_API_KEY: secret,
+      },
+    )
+    const responseText = await response.text()
+
+    expect(response.status).toBe(200)
+    expect(JSON.parse(responseText)).toEqual({
+      status: 'ready',
+      configured: true,
+      version: 'ai-api.v1',
+    })
+    expect(responseText).not.toContain(secret)
+    expect(externalFetch).not.toHaveBeenCalled()
+  })
 })

@@ -1,18 +1,27 @@
-# AI API foundation
+# Worker AI API
 
-The Cloudflare Worker handles `/api/*` requests and delegates other requests to
-the static assets binding. The current Worker does **not** connect to an AI
-provider. `GET /api/ai/status` reports `configured: false`, and a valid
-`POST /api/ai/analyze` request returns HTTP 503 with `status: "unavailable"`.
-No mock result is used at runtime.
+The Cloudflare Worker handles `/api/*` requests and delegates other requests
+to the static assets binding. It calls Groq's OpenAI-compatible chat
+completions endpoint with `openai/gpt-oss-120b` when the `GROQ_API_KEY` Worker
+Secret is configured. If the secret is missing, the API reports that AI is
+unavailable and never returns a fabricated result.
 
-GroqCloud `openai/gpt-oss-120b` is only a provisional candidate. It is not
-approved or configured for live requests; account free-tier eligibility, model
-availability, and Zero Data Retention settings still require verification.
-No paid billing or paid fallback is enabled. Keep the API unavailable until
-those checks are confirmed.
+## Configure the Worker Secret
 
-## Analysis request
+Set `GROQ_API_KEY` as a Cloudflare Worker Secret in the Cloudflare dashboard,
+or use Wrangler's interactive secret command:
+
+```powershell
+npx wrangler secret put GROQ_API_KEY
+```
+
+Enter the key only at Wrangler's prompt. Do not put it in source files,
+frontend/Vite variables, `wrangler.jsonc`, command arguments, logs, or API
+responses. Do not enable paid billing or configure a paid fallback. If the
+account's free usage is unavailable or exhausted, the API returns an explicit
+unavailable response.
+
+## Analysis workflow
 
 Send JSON to `POST /api/ai/analyze`:
 
@@ -28,27 +37,24 @@ Send JSON to `POST /api/ai/analyze`:
 }
 ```
 
-Messages are limited to 10,000 JavaScript characters and request bodies to
-48 KiB. All consent fields must be explicitly `true`. Browser requests with a
-cross-origin `Origin` or non-same-origin `Sec-Fetch-Site` are rejected. API
-responses are JSON with `Cache-Control: no-store`.
+The endpoint requires all consent fields to be explicitly `true`, rejects
+cross-origin browser requests, and accepts messages up to 10,000 JavaScript
+characters in request bodies up to 48 KiB. The frontend shows a redacted
+preview before sending, but sends the original message only after the user
+consents and submits.
 
-Successful provider processing is staged: `AiProvider.translate` receives a
-versioned translation request, and only its validated English translation is
-passed to `AiProvider.analyze`. Both outputs have versioned response types and
-are validated before being returned. Provider stages receive an abort signal
-and time out after eight seconds by default. Errors return an explicit
-`error` or `unavailable` state; they never return a successful or safe-looking
-analysis.
+The Worker sends the original message to Groq for translation first. Only the
+validated English translation is then sent for scam-indicator analysis. The
+Worker validates both provider outputs and returns only the versioned
+translation and structured analysis supported by the app's localized safety
+recommendations. It does not fetch URLs from messages. Groq receives the
+message text; its own data-handling and retention policies apply.
 
-## Provider integration after approval
+Provider calls have an eight-second timeout per stage and bounded response
+size. Missing credentials, timeouts, rate limits, provider failures, and
+malformed responses return explicit `error` or `unavailable` responses.
+Provider details and credentials are not logged or included in API responses.
+The API uses `Cache-Control: no-store`.
 
-After verification, implement and inject a provider adapter into `createAiApi`
-from the Worker entry point. Keep its API credential in a Cloudflare Worker
-Secret; do not use a Vite/frontend environment variable. Set timeouts and
-response limits deliberately, document third-party processing and retention
-for users, and test provider failures with mocks in CI. Do not add URL
-fetching: message URLs remain text and must never be requested by this API.
-
-Worker tests use mocked providers and make no external requests. Build-time
-TypeScript validation includes the Worker entry point.
+Worker tests mock the provider or `fetch`; CI does not require a real key or
+make requests to Groq.

@@ -38,7 +38,7 @@ export interface AiApiOptions {
 
 export class AiProviderError extends Error {
   constructor(
-    readonly code: 'rate_limited' | 'unavailable',
+    readonly code: 'rate_limited' | 'unavailable' | 'invalid_response',
     readonly retryAfterSeconds?: number,
   ) {
     super(code)
@@ -403,6 +403,14 @@ async function handleAnalysis(
         response.headers.set('Retry-After', String(retryAfterSeconds))
       }
       return response
+    }
+    if (error instanceof AiProviderError && error.code === 'invalid_response') {
+      return errorResponse(
+        502,
+        'invalid_provider_response',
+        'AI analysis returned an invalid response. No result was produced.',
+        'unavailable',
+      )
     }
     if (error instanceof AiProviderError) {
       return errorResponse(
