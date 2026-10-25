@@ -100,6 +100,42 @@ describe('Groq provider adapter', () => {
     expect(analysisBody.messages[1].content).not.toContain('আপনার OTP')
   })
 
+  it('instructs faithful translation of Banglish threats and implied consequences', async () => {
+    const banglish =
+      'Apnar account block hobey. Ekhoni OTP pathan. na hoile apnar khobor ache'
+    const faithfulTranslation =
+      "Your account will be blocked. Send the OTP immediately. Otherwise, you'll face the consequences."
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        completion(
+          JSON.stringify({
+            sourceLanguage: 'bn-Latn',
+            detectedLanguage: 'bangla',
+            translatedText: faithfulTranslation,
+          }),
+        ),
+      )
+
+    const translation = await createGroqProvider('worker-secret', fetcher).translate(
+      {
+        version: TRANSLATION_REQUEST_VERSION,
+        text: banglish,
+        targetLanguage: 'en',
+      },
+      new AbortController().signal,
+    )
+
+    expect(translation.translatedText).toBe(faithfulTranslation)
+    const [, options] = fetcher.mock.calls[0]
+    const requestBody = JSON.parse(String(options?.body))
+    const systemPrompt = requestBody.messages[0].content
+    expect(requestBody.messages[1].content).toBe(banglish)
+    expect(systemPrompt).toContain('including threats, coercion, urgency, negation')
+    expect(systemPrompt).toContain('Keep an implied consequence implied and unspecified')
+    expect(systemPrompt).toContain('Do not soften or exaggerate the source')
+  })
+
   it('rejects malformed or unstructured model output', async () => {
     const fetcher = vi
       .fn<typeof fetch>()
