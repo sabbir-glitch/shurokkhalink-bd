@@ -4,13 +4,13 @@ import {
   SCAM_ANALYSIS_RESPONSE_VERSION,
   TRANSLATION_REQUEST_VERSION,
   TRANSLATION_RESPONSE_VERSION,
-  type AiAnalysisRequestV1,
-  type AiAnalysisSuccessV1,
+  type AiAnalysisRequestV3,
+  type AiAnalysisSuccessV3,
   type AiApiErrorV1,
   type ScamAnalysisRequestV1,
   type ScamAnalysisResponseV1,
-  type TranslationRequestV1,
-  type TranslationResponseV1,
+  type TranslationRequestV2,
+  type TranslationResponseV2,
 } from '../src/lib/aiContracts'
 
 const API_STATUS_PATH = '/api/ai/status'
@@ -22,9 +22,9 @@ const DEFAULT_PROVIDER_TIMEOUT_MS = 8_000
 
 export interface AiProvider {
   translate(
-    request: TranslationRequestV1,
+    request: TranslationRequestV2,
     signal: AbortSignal,
-  ): Promise<TranslationResponseV1>
+  ): Promise<TranslationResponseV2>
   analyze(
     request: ScamAnalysisRequestV1,
     signal: AbortSignal,
@@ -182,7 +182,7 @@ async function readRequestJson(request: Request): Promise<unknown> {
   }
 }
 
-function validateRequest(value: unknown): AiAnalysisRequestV1 {
+function validateRequest(value: unknown): AiAnalysisRequestV3 {
   if (!isRecord(value) || value.version !== AI_ANALYSIS_REQUEST_VERSION) {
     throw new InputError(
       400,
@@ -200,33 +200,18 @@ function validateRequest(value: unknown): AiAnalysisRequestV1 {
       'Message exceeds the allowed length.',
     )
   }
-  if (!isRecord(value.consent)) {
+  if (value.userInitiated !== true) {
     throw new InputError(
       400,
-      'consent_required',
-      'All analysis consent fields must be accepted.',
-    )
-  }
-  if (
-    value.consent.messageProcessing !== true ||
-    value.consent.translation !== true ||
-    value.consent.externalAiProcessing !== true
-  ) {
-    throw new InputError(
-      400,
-      'consent_required',
-      'All analysis consent fields must be accepted.',
+      'user_action_required',
+      'Start analysis using the on-page action.',
     )
   }
 
   return {
     version: AI_ANALYSIS_REQUEST_VERSION,
     message: value.message,
-    consent: {
-      messageProcessing: true,
-      translation: true,
-      externalAiProcessing: true,
-    },
+    userInitiated: true,
   }
 }
 
@@ -241,12 +226,17 @@ function isSameOriginBrowserRequest(request: Request): boolean {
   )
 }
 
-function isTranslationResponse(value: unknown): value is TranslationResponseV1 {
+function isTranslationResponse(value: unknown): value is TranslationResponseV2 {
   return (
     isRecord(value) &&
     value.version === TRANSLATION_RESPONSE_VERSION &&
     (typeof value.sourceLanguage === 'string' || value.sourceLanguage === null) &&
     (value.sourceLanguage === null || value.sourceLanguage.length <= 50) &&
+    (value.detectedLanguage === 'bangla' ||
+      value.detectedLanguage === 'english' ||
+      value.detectedLanguage === 'other' ||
+      value.detectedLanguage === 'uncertain') &&
+    (value.targetLanguage === 'en' || value.targetLanguage === 'bn') &&
     typeof value.translatedText === 'string' &&
     value.translatedText.trim().length > 0 &&
     value.translatedText.length <= MAX_MESSAGE_CHARACTERS * 2
@@ -328,7 +318,7 @@ async function handleAnalysis(
     )
   }
 
-  let body: AiAnalysisRequestV1
+  let     body: AiAnalysisRequestV3
   try {
     body = validateRequest(await readRequestJson(request))
   } catch (error) {
@@ -347,21 +337,74 @@ async function handleAnalysis(
 
   const provider = options.provider
   try {
-    const translationRequest: TranslationRequestV1 = {
-      version: TRANSLATION_REQUEST_VERSION,
-      text: body.message,
-    }
-    const translation = await runProviderStage(
-      (signal) => provider.translate(translationRequest, signal),
+    let englishTranslation: TranslationResponseV2 | null = null
+    let banglaTranslation: TranslationResponseV2 | null = null
+    const detected = await runProviderStage(
+      (signal) =>
+        provider.translate(
+          {
+            version: TRANSLATION_REQUEST_VERSION,
+            text: body.message,
+            targetLanguage: 'en',
+          },
+          signal,
+        ),
       options.providerTimeoutMs,
     )
-    if (!isTranslationResponse(translation)) {
+    if (!isTranslationResponse(detected) || detected.targetLanguage !== 'en') {
+      throw new InvalidProviderOutputError()
+    }
+    if (detected.detectedLanguage === 'uncertain') {
       throw new InvalidProviderOutputError()
     }
 
+    let englishText = body.message
+    if (detected.detectedLanguage === 'english') {
+      banglaTranslation = await runProviderStage(
+        (signal) =>
+          provider.translate(
+            {
+              version: TRANSLATION_REQUEST_VERSION,
+              text: body.message,
+              targetLanguage: 'bn',
+            },
+            signal,
+          ),
+        options.providerTimeoutMs,
+      )
+      if (!isTranslationResponse(banglaTranslation) || banglaTranslation.targetLanguage !== 'bn') {
+        throw new InvalidProviderOutputError()
+      }
+      if (banglaTranslation.detectedLanguage !== 'english') {
+        throw new InvalidProviderOutputError()
+      }
+    } else {
+      englishTranslation = detected
+      englishText = detected.translatedText
+    }
+    if (detected.detectedLanguage === 'other') {
+      banglaTranslation = await runProviderStage(
+        (signal) =>
+          provider.translate(
+            {
+              version: TRANSLATION_REQUEST_VERSION,
+              text: body.message,
+              targetLanguage: 'bn',
+            },
+            signal,
+          ),
+        options.providerTimeoutMs,
+      )
+      if (!isTranslationResponse(banglaTranslation) || banglaTranslation.targetLanguage !== 'bn') {
+        throw new InvalidProviderOutputError()
+      }
+      if (banglaTranslation.detectedLanguage !== 'other') {
+        throw new InvalidProviderOutputError()
+      }
+    }
     const analysisRequest: ScamAnalysisRequestV1 = {
       version: SCAM_ANALYSIS_REQUEST_VERSION,
-      englishText: translation.translatedText,
+      englishText,
     }
     const analysis = await runProviderStage(
       (signal) => provider.analyze(analysisRequest, signal),
@@ -371,10 +414,11 @@ async function handleAnalysis(
       throw new InvalidProviderOutputError()
     }
 
-    const success: AiAnalysisSuccessV1 = {
+    const success: AiAnalysisSuccessV3 = {
       status: 'completed',
-      version: 'ai-analysis-response.v1',
-      translation,
+      version: 'ai-analysis-response.v3',
+      englishTranslation,
+      banglaTranslation,
       analysis,
     }
     const responseText = JSON.stringify(success)

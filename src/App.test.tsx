@@ -5,12 +5,15 @@ import App from './App'
 
 const completedResponse = {
   status: 'completed',
-  version: 'ai-analysis-response.v1',
-  translation: {
-    version: 'translation-response.v1',
+  version: 'ai-analysis-response.v3',
+  englishTranslation: {
+    version: 'translation-response.v2',
     sourceLanguage: 'bn',
+    detectedLanguage: 'bangla',
+    targetLanguage: 'en',
     translatedText: 'Share your OTP immediately.',
   },
+  banglaTranslation: null,
   analysis: {
     version: 'scam-analysis-response.v1',
     verdict: 'suspicious',
@@ -25,6 +28,28 @@ const completedResponse = {
         explanation: 'It asks the recipient to act immediately.',
       },
     ],
+  },
+}
+const completedBanglaResponse = {
+  ...completedResponse,
+  englishTranslation: null,
+  banglaTranslation: {
+    version: 'translation-response.v2',
+    sourceLanguage: 'en',
+    detectedLanguage: 'english',
+    targetLanguage: 'bn',
+    translatedText: 'এখনই আপনার OTP পাঠান।',
+  },
+}
+const completedBothTranslationsResponse = {
+  ...completedResponse,
+  englishTranslation: {
+    ...completedResponse.englishTranslation,
+    detectedLanguage: 'other',
+  },
+  banglaTranslation: {
+    ...completedBanglaResponse.banglaTranslation,
+    detectedLanguage: 'other',
   },
 }
 
@@ -44,19 +69,15 @@ function mockFetch(response: Response | Error) {
   return fetchMock
 }
 
-async function enterConsentAndSubmit(message = 'OTP: 123456. https://example.test') {
+async function enterAndSubmit(message = 'OTP: 123456. https://example.test') {
   const user = userEvent.setup()
   const input =
     screen.queryByRole('textbox', { name: 'সন্দেহজনক বার্তা' }) ??
     screen.getByRole('textbox', { name: 'Suspicious message' })
   fireEvent.change(input, { target: { value: message } })
-  const consent =
-    screen.queryByRole('checkbox', { name: /আমি বুঝেছি যে মূল বার্তাটি/ }) ??
-    screen.getByRole('checkbox', { name: /I understand that the original message/ })
-  await user.click(consent)
   const submit =
-    screen.queryByRole('button', { name: /AI দিয়ে বার্তা বিশ্লেষণ করুন/ }) ??
-    screen.getByRole('button', { name: /Analyse with AI/ })
+    screen.queryByRole('button', { name: /বার্তা বিশ্লেষণ করুন/ }) ??
+    screen.getByRole('button', { name: /Analyse message/ })
   await user.click(submit)
   return user
 }
@@ -66,23 +87,31 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe('AI-only App workflow', () => {
-  it('starts in Bangla and explains third-party processing and consent', () => {
+describe('message analysis workflow', () => {
+  it('shows the Bangla subtitle and external-processing disclosure without a preview or checkbox', () => {
     render(<App />)
 
     expect(
       screen.getByRole('heading', { name: 'সন্দেহজনক বার্তা?' }),
     ).toBeInTheDocument()
     expect(
-      screen.getAllByText(/তৃতীয় পক্ষের সেবায় পাঠানো হবে/).length,
-    ).toBeGreaterThan(0)
-    expect(screen.getByRole('checkbox', { name: /আমি বুঝেছি/ })).not.toBeChecked()
-    expect(
-      screen.getByRole('heading', { name: 'পাঠানোর আগে গোপনীয়তা-রক্ষিত পূর্বরূপ' }),
+      screen.getByText(
+        'সন্দেহজনক বার্তা বুঝুন এবং নিরাপদ পরবর্তী পদক্ষেপ বেছে নিন।',
+      ),
     ).toBeInTheDocument()
+    expect(
+      screen.getByText('© ২০২৬ সাব্বির আহাম্মেদ। সর্বস্বত্ব সংরক্ষিত।'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'বিশ্লেষণ বোতামে ক্লিক করলে আপনার বার্তাটি অনুবাদ ও বিশ্লেষণের জন্য একটি বহিঃস্থ পরিষেবায় পাঠানো হবে।',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    expect(screen.queryByText(/পূর্বরূপ/)).not.toBeInTheDocument()
   })
 
-  it('requires consent and makes no request without it', async () => {
+  it('does not send text while typing and sends only after the analysis action', async () => {
     const user = userEvent.setup()
     const fetchMock = mockFetch(apiResponse(completedResponse))
     render(<App />)
@@ -90,20 +119,38 @@ describe('AI-only App workflow', () => {
       screen.getByRole('textbox', { name: 'সন্দেহজনক বার্তা' }),
       'নমুনা বার্তা',
     )
-    await user.click(
-      screen.getByRole('button', { name: /AI দিয়ে বার্তা বিশ্লেষণ করুন/ }),
-    )
-
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'চালিয়ে যেতে তৃতীয় পক্ষের AI প্রক্রিয়াকরণে সম্মতি দিন।',
-    )
     expect(fetchMock).not.toHaveBeenCalled()
     expect(
-      screen.queryByText(completedResponse.analysis.summary),
-    ).not.toBeInTheDocument()
+      screen.getByText(
+        'বিশ্লেষণ বোতামে ক্লিক করলে আপনার বার্তাটি অনুবাদ ও বিশ্লেষণের জন্য একটি বহিঃস্থ পরিষেবায় পাঠানো হবে।',
+      ),
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /বার্তা বিশ্লেষণ করুন/ }))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce())
+    const requestBody = JSON.parse(String(fetchMock.mock.calls[0][1]?.body))
+    expect(requestBody).toMatchObject({
+      userInitiated: true,
+      message: 'নমুনা বার্তা',
+    })
+    expect(requestBody).not.toHaveProperty('direction')
   })
 
-  it('updates a redacted preview and sends the original only after consent', async () => {
+  it('clears the submitted text and result without initiating a request', async () => {
+    const user = userEvent.setup()
+    const fetchMock = mockFetch(apiResponse(completedResponse))
+    render(<App />)
+    await user.type(
+      screen.getByRole('textbox', { name: 'সন্দেহজনক বার্তা' }),
+      'নমুনা বার্তা',
+    )
+    await user.click(screen.getByRole('button', { name: 'মুছে ফেলুন' }))
+
+    expect(screen.getByRole('textbox', { name: 'সন্দেহজনক বার্তা' })).toHaveValue('')
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(screen.queryByText('নমুনা বার্তা')).not.toBeInTheDocument()
+  })
+
+  it('sends the selected original message only after the user submits', async () => {
     const fetchMock = mockFetch(
       apiResponse(
         {
@@ -114,34 +161,38 @@ describe('AI-only App workflow', () => {
       ),
     )
     render(<App />)
-    await enterConsentAndSubmit()
+    await enterAndSubmit()
 
-    expect(screen.getByText('OTP: [redacted]. [link redacted]')).toBeInTheDocument()
     await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce())
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/ai/analyze',
       expect.objectContaining({
         method: 'POST',
         cache: 'no-store',
-        body: expect.stringContaining('"message":"OTP: 123456. https://example.test"'),
       }),
     )
+    const body = JSON.parse(String(fetchMock.mock.calls[0][1]?.body))
+    expect(body).toMatchObject({
+      message: 'OTP: 123456. https://example.test',
+      userInitiated: true,
+    })
+    expect(body).not.toHaveProperty('direction')
     expect(
       (
         await screen.findAllByText(
-          'AI বিশ্লেষণ সেবা এখনো কনফিগার করা হয়নি। কোনো ফলাফল তৈরি বা দেখানো হয়নি।',
+          'বিশ্লেষণ পরিষেবা এখনো কনফিগার করা হয়নি। কোনো ফলাফল দেখানো হয়নি।',
         )
       ).length,
     ).toBeGreaterThan(0)
     expect(screen.queryByText(/Share your OTP immediately/)).not.toBeInTheDocument()
   })
 
-  it('displays the validated translation before the structured AI indicators', async () => {
+  it('displays the validated translation before structured findings', async () => {
     const user = userEvent.setup()
     mockFetch(apiResponse(completedResponse))
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'English' }))
-    await enterConsentAndSubmit('আপনার OTP এখনই পাঠান')
+    await enterAndSubmit('আপনার OTP এখনই পাঠান')
 
     expect(
       await screen.findByRole('heading', { name: 'English translation' }),
@@ -149,7 +200,7 @@ describe('AI-only App workflow', () => {
     expect(screen.getByText('Share your OTP immediately.')).toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
-        name: /AI analysis: Some indicators deserve attention/,
+        name: /Message analysis: Some indicators deserve attention/,
       }),
     ).toBeInTheDocument()
     expect(
@@ -157,18 +208,61 @@ describe('AI-only App workflow', () => {
         name: 'A request for private verification information',
       }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/An AI warning is not proof of fraud/)).toBeInTheDocument()
+    expect(screen.getByText('Results may be wrong or incomplete.')).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent(
       /The message asks for a one-time code/,
     )
   })
 
-  it('does not display malformed successful responses as findings', async () => {
+  it('displays Bangla translation for English input detected automatically', async () => {
     const user = userEvent.setup()
-    mockFetch(apiResponse({ status: 'completed', translation: {}, analysis: {} }))
+    const fetchMock = mockFetch(apiResponse(completedBanglaResponse))
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'English' }))
-    await enterConsentAndSubmit('A suspicious example')
+    await enterAndSubmit('Send your OTP now.')
+
+    expect(
+      await screen.findByRole('heading', { name: 'Bangla translation' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('এখনই আপনার OTP পাঠান।')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'English translation' })).not.toBeInTheDocument()
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).not.toHaveProperty(
+      'direction',
+    )
+  })
+
+  it('shows both translations for other-language input detected automatically', async () => {
+    const user = userEvent.setup()
+    const fetchMock = mockFetch(apiResponse(completedBothTranslationsResponse))
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'English' }))
+    await enterAndSubmit('নমুনা বার্তা')
+
+    expect(
+      await screen.findByRole('heading', { name: 'English translation' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Bangla translation' })).toBeInTheDocument()
+    expect(screen.getByText('Share your OTP immediately.')).toBeInTheDocument()
+    expect(screen.getByText('এখনই আপনার OTP পাঠান।')).toBeInTheDocument()
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).not.toHaveProperty(
+      'direction',
+    )
+  })
+
+  it('does not display malformed successful responses as findings', async () => {
+    const user = userEvent.setup()
+    mockFetch(
+      apiResponse({
+        status: 'completed',
+        version: 'ai-analysis-response.v3',
+        englishTranslation: {},
+        banglaTranslation: null,
+        analysis: {},
+      }),
+    )
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'English' }))
+    await enterAndSubmit('A suspicious example')
 
     expect(
       (
@@ -196,14 +290,14 @@ describe('AI-only App workflow', () => {
     )
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'English' }))
-    await enterConsentAndSubmit(
+    await enterAndSubmit(
       'Share your OTP now and claim your prize at https://example.test',
     )
 
     expect(
       (
         await screen.findAllByText(
-          'The AI service is temporarily unavailable. No result was displayed; try again later.',
+          'The service is temporarily unavailable. No result was displayed; try again later.',
         )
       ).length,
     ).toBeGreaterThan(0)
@@ -231,11 +325,11 @@ describe('AI-only App workflow', () => {
     )
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'English' }))
-    await enterConsentAndSubmit('Please verify this message')
+    await enterAndSubmit('Please verify this message')
     expect(
       (
         await screen.findAllByText(
-          'AI analysis could not be completed. Try again later; do not assume the message is safe.',
+          'Analysis could not be completed. Try again later.',
         )
       ).length,
     ).toBeGreaterThan(0)
@@ -247,12 +341,9 @@ describe('AI-only App workflow', () => {
       screen.getByRole('textbox', { name: 'Suspicious message' }),
       'A second message',
     )
-    await nextUser.click(
-      screen.getByRole('checkbox', { name: /I understand that the original message/ }),
-    )
-    await nextUser.click(screen.getByRole('button', { name: /Analyse with AI/ }))
+    await nextUser.click(screen.getByRole('button', { name: /Analyse message/ }))
     expect(
-      (await screen.findAllByText(/Could not connect to the analysis service/)).length,
+      (await screen.findAllByText(/Could not connect to the service/)).length,
     ).toBeGreaterThan(0)
   })
 
@@ -269,14 +360,14 @@ describe('AI-only App workflow', () => {
     )
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'English' }))
-    await enterConsentAndSubmit('Please check this message')
+    await enterAndSubmit('Please check this message')
 
     expect(
       (await screen.findAllByText('The analysis timed out. No result was displayed.'))
         .length,
     ).toBeGreaterThan(0)
     expect(
-      screen.queryByRole('heading', { name: /AI analysis: / }),
+      screen.queryByRole('heading', { name: /Message analysis: / }),
     ).not.toBeInTheDocument()
   })
 
@@ -296,14 +387,11 @@ describe('AI-only App workflow', () => {
       target: { value: 'A message to check' },
     })
     fireEvent.click(
-      screen.getByRole('checkbox', { name: /আমি বুঝেছি যে মূল বার্তাটি/ }),
-    )
-    fireEvent.click(
-      screen.getByRole('button', { name: /AI দিয়ে বার্তা বিশ্লেষণ করুন/ }),
+      screen.getByRole('button', { name: /বার্তা বিশ্লেষণ করুন/ }),
     )
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(15_000)
+      await vi.advanceTimersByTimeAsync(30_000)
     })
 
     expect(
@@ -312,7 +400,7 @@ describe('AI-only App workflow', () => {
       ).length,
     ).toBeGreaterThan(0)
     expect(
-      screen.queryByRole('heading', { name: /AI বিশ্লেষণ:/ }),
+      screen.queryByRole('heading', { name: /বার্তা বিশ্লেষণ:/ }),
     ).not.toBeInTheDocument()
   })
 
@@ -329,17 +417,17 @@ describe('AI-only App workflow', () => {
     )
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'English' }))
-    await enterConsentAndSubmit('Please check this message')
+    await enterAndSubmit('Please check this message')
 
     expect(
       (
         await screen.findAllByText(
-          'The AI service is receiving too many requests. Try again shortly; no analysis was displayed.',
+          'The service is receiving too many requests. Try again shortly; no result was displayed.',
         )
       ).length,
     ).toBeGreaterThan(0)
     expect(
-      screen.queryByRole('heading', { name: /AI analysis: / }),
+      screen.queryByRole('heading', { name: /Message analysis: / }),
     ).not.toBeInTheDocument()
   })
 
@@ -357,32 +445,68 @@ describe('AI-only App workflow', () => {
       screen.getByRole('textbox', { name: 'Suspicious message' }),
       'Test content',
     )
-    await user.click(
-      screen.getByRole('checkbox', { name: /I understand that the original message/ }),
-    )
-    await user.click(screen.getByRole('button', { name: /Analyse with AI/ }))
+    expect(fetchMock).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: /Analyse message/ }))
 
-    expect(screen.getAllByText('AI analysis in progress…').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Analysis in progress…').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: 'Clear' })).toBeDisabled()
     resolveResponse(apiResponse(completedResponse))
     expect(await screen.findByText('Share your OTP immediately.')).toBeInTheDocument()
   })
 
-  it('switches key consent and error copy to English', async () => {
+  it('switches disclosure to English without a translation-direction selector', async () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'English' }))
 
     expect(
-      screen.getByRole('checkbox', { name: /I understand that the original message/ }),
+      screen.getByText(
+        'Clicking Analyse sends your message to an external service for translation and analysis.',
+      ),
     ).toBeInTheDocument()
-    await user.type(
-      screen.getByRole('textbox', { name: 'Suspicious message' }),
-      'Example',
-    )
-    await user.click(screen.getByRole('button', { name: /Analyse with AI/ }))
+    expect(
+      screen.getByText('Understand suspicious messages and choose safer next steps.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByLabelText(/Translation direction/)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/অনুবাদের দিক/)).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Analyse message/ }))
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'Consent to third-party AI processing before continuing.',
+      'Add some message text before analysing.',
     )
+  })
+
+  it('shows the exact warning and introduction credit in both interface languages', async () => {
+    const user = userEvent.setup()
+    mockFetch(apiResponse(completedResponse))
+    render(<App />)
+    await enterAndSubmit('নমুনা বার্তা')
+
+    expect(
+      screen.getByText('ফলাফল ভুল বা অসম্পূর্ণ হতে পারে।'),
+    ).toBeInTheDocument()
+    const banglaSubtitle = screen.getByText(
+      'সন্দেহজনক বার্তা বুঝুন এবং নিরাপদ পরবর্তী পদক্ষেপ বেছে নিন।',
+    )
+    const banglaCredit = screen.getByText(
+      '© ২০২৬ সাব্বির আহাম্মেদ। সর্বস্বত্ব সংরক্ষিত।',
+    )
+    expect(banglaSubtitle.nextElementSibling).toBe(banglaCredit)
+    expect(screen.queryByText('© ২০২৬ সাব্বির আহাম্মেদ। সর্বস্বত্ব সংরক্ষিত।', {
+      selector: '.footer-copy *',
+    })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'English' }))
+    expect(screen.getByText('Results may be wrong or incomplete.')).toBeInTheDocument()
+    const englishSubtitle = screen.getByText(
+      'Understand suspicious messages and choose safer next steps.',
+    )
+    const englishCredit = screen.getByText(
+      '© 2026 Sabbir Ahammed, All Rights Reserved',
+    )
+    expect(englishSubtitle.nextElementSibling).toBe(englishCredit)
+    expect(screen.queryByText('© 2026 Sabbir Ahammed, All Rights Reserved', {
+      selector: '.footer-copy *',
+    })).not.toBeInTheDocument()
+    expect(screen.queryByText(/AI warning is not proof of fraud/)).not.toBeInTheDocument()
   })
 })

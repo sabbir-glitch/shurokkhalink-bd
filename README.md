@@ -8,7 +8,7 @@ ShurokkhaLink BD is a Bangla-first, browser-based awareness tool that gives user
 ## Features
 
 - Bangla-first interface with an English language option.
-- Optional AI analysis through the server-side Worker API, with explicit consent before the original message is sent to a third-party provider.
+- Optional server-side message translation and analysis, initiated only when the user selects the analysis action.
 - Explanations and safer actions for detected warning indicators.
 - Informational URL-structure observations for selected characteristics, including HTTP, embedded URL credentials, IP-literal hosts, and punycode labels.
 - Synthetic examples, input clearing, and responsive layout.
@@ -21,7 +21,7 @@ AI output can be wrong, incomplete, or miss context. It is not proof that a mess
 
 ## Privacy design
 
-The app shows a redacted preview before submission, but that preview cannot catch every sensitive value. Only after the user checks the consent box and submits does the browser send the original message to the Worker. When its `GROQ_API_KEY` Worker Secret is configured, the Worker sends the original text to Groq for translation and sends the English translation for analysis. The app does not store submitted text in browser storage or write message contents or credentials to application logs. Groq's data-handling and retention policies apply to text sent to its service. Clearing the form removes the current text and results from application state.
+Before the analysis button, the app discloses that clicking it sends the original message to an external service for translation and analysis. Typing alone does not transmit text. When configured, the Worker translates and analyses the submitted message according to the selected direction. The app does not store submitted text in browser storage or write message contents or credentials to application logs. The external service's data-handling and retention policies apply to text it receives. Clearing the form removes the current text and results from application state.
 
 The Worker returns an explicit unavailable response when the secret is absent or the provider cannot return validated results. It does not fall back to fabricated or local findings. See [`worker/README.md`](worker/README.md) for server-side secret setup and provider behavior.
 

@@ -124,43 +124,6 @@ main {
   line-height: 1.75;
 }
 
-.privacy-pill {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 10px 13px;
-  border: 1px solid #d6e9dd;
-  border-radius: 999px;
-  background: #f5faf6;
-  color: var(--green-dark);
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.lock-icon {
-  position: relative;
-  width: 11px;
-  height: 9px;
-  display: inline-block;
-  border: 1.7px solid currentColor;
-  border-radius: 2px;
-  color: transparent;
-  font-size: 0;
-}
-
-.lock-icon::before {
-  position: absolute;
-  bottom: 5px;
-  left: 2px;
-  width: 4px;
-  height: 5px;
-  border: 1.6px solid var(--green-dark);
-  border-bottom: 0;
-  border-radius: 5px 5px 0 0;
-  content: '';
-}
-
 .analyzer-card {
   padding: 28px 30px 24px;
   border: 1px solid var(--line);
@@ -254,22 +217,13 @@ main {
   border-color: #b43e3e;
 }
 
-.consent-note {
+.processing-disclosure {
   margin: 0 0 12px;
   color: var(--muted);
   font-size: 13px;
   line-height: 1.65;
 }
 
-.redacted-preview {
-  margin: 0 0 16px;
-  padding: 14px 16px;
-  border: 1px solid #d9e0da;
-  border-radius: 10px;
-  background: #f8faf8;
-}
-
-.redacted-preview h3,
 .translation-panel h3,
 .analysis-panel h3 {
   margin: 0 0 8px;
@@ -277,7 +231,6 @@ main {
   font-size: 15px;
 }
 
-.redacted-preview p,
 .translation-panel p,
 .analysis-panel > p {
   margin: 0;
@@ -288,30 +241,10 @@ main {
   white-space: pre-wrap;
 }
 
-.consent-control {
-  display: flex !important;
-  align-items: flex-start;
-  gap: 10px;
-  margin: 0 !important;
-  padding: 12px;
-  border: 1px solid #d9e0da;
-  border-radius: 10px;
-  background: #fcfdfc;
-  font-weight: 500 !important;
-  line-height: 1.65;
-}
-
-.consent-control input {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
-  margin: 2px 0 0;
-  accent-color: var(--green);
-}
-
-.consent-control:focus-within {
-  outline: 3px solid rgb(40 112 73 / 18%);
-  outline-offset: 2px;
+.developer-credit {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .button:disabled {
@@ -737,10 +670,6 @@ footer p {
 
   .hero-subtitle {
     font-size: 14px;
-  }
-
-  .privacy-pill {
-    font-size: 11px;
   }
 
   .analyzer-card {

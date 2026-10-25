@@ -2,10 +2,10 @@ import {
   AI_ANALYSIS_REQUEST_VERSION,
   SCAM_ANALYSIS_RESPONSE_VERSION,
   TRANSLATION_RESPONSE_VERSION,
-  type AiAnalysisSuccessV1,
+  type AiAnalysisSuccessV3,
   type ScamAnalysisResponseV1,
   type ScamIndicatorV1,
-  type TranslationResponseV1,
+  type TranslationResponseV2,
 } from './aiContracts'
 
 const MAX_MESSAGE_CHARACTERS = 10_000
@@ -48,12 +48,17 @@ function isIndicator(value: unknown): value is ScamIndicatorV1 {
   )
 }
 
-function isTranslation(value: unknown): value is TranslationResponseV1 {
+function isTranslation(value: unknown): value is TranslationResponseV2 {
   return (
     isRecord(value) &&
     value.version === TRANSLATION_RESPONSE_VERSION &&
     (typeof value.sourceLanguage === 'string' || value.sourceLanguage === null) &&
     (value.sourceLanguage === null || value.sourceLanguage.length <= 50) &&
+    (value.detectedLanguage === 'bangla' ||
+      value.detectedLanguage === 'english' ||
+      value.detectedLanguage === 'other' ||
+      value.detectedLanguage === 'uncertain') &&
+    (value.targetLanguage === 'en' || value.targetLanguage === 'bn') &&
     typeof value.translatedText === 'string' &&
     value.translatedText.trim().length > 0 &&
     value.translatedText.length <= MAX_MESSAGE_CHARACTERS * 2
@@ -77,20 +82,39 @@ function isAnalysis(value: unknown): value is ScamAnalysisResponseV1 {
   return value.indicators.every(isIndicator)
 }
 
-function validateSuccess(value: unknown): AiAnalysisSuccessV1 | null {
+function validateSuccess(value: unknown): AiAnalysisSuccessV3 | null {
   if (
     !isRecord(value) ||
     value.status !== 'completed' ||
-    value.version !== 'ai-analysis-response.v1' ||
-    !isTranslation(value.translation) ||
+    value.version !== 'ai-analysis-response.v3' ||
+    (value.englishTranslation !== null &&
+      !isTranslation(value.englishTranslation)) ||
+    (value.banglaTranslation !== null &&
+      !isTranslation(value.banglaTranslation)) ||
+    (isTranslation(value.englishTranslation) &&
+      value.englishTranslation.targetLanguage !== 'en') ||
+    (isTranslation(value.banglaTranslation) &&
+      value.banglaTranslation.targetLanguage !== 'bn') ||
+    (value.englishTranslation === null && value.banglaTranslation === null) ||
+    (isTranslation(value.englishTranslation) &&
+      isTranslation(value.banglaTranslation) &&
+      (value.englishTranslation.detectedLanguage !== 'other' ||
+        value.banglaTranslation.detectedLanguage !== 'other')) ||
+    (isTranslation(value.englishTranslation) &&
+      value.banglaTranslation === null &&
+      value.englishTranslation.detectedLanguage !== 'bangla') ||
+    (value.englishTranslation === null &&
+      isTranslation(value.banglaTranslation) &&
+      value.banglaTranslation.detectedLanguage !== 'english') ||
     !isAnalysis(value.analysis)
   ) {
     return null
   }
   return {
     status: 'completed',
-    version: 'ai-analysis-response.v1',
-    translation: value.translation,
+    version: 'ai-analysis-response.v3',
+    englishTranslation: value.englishTranslation,
+    banglaTranslation: value.banglaTranslation,
     analysis: value.analysis,
   }
 }
@@ -99,7 +123,7 @@ export async function analyzeWithAi(
   message: string,
   signal: AbortSignal,
   fetcher: typeof fetch = fetch,
-): Promise<AiAnalysisSuccessV1> {
+): Promise<AiAnalysisSuccessV3> {
   const response = await fetcher('/api/ai/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -108,11 +132,7 @@ export async function analyzeWithAi(
     body: JSON.stringify({
       version: AI_ANALYSIS_REQUEST_VERSION,
       message,
-      consent: {
-        messageProcessing: true,
-        translation: true,
-        externalAiProcessing: true,
-      },
+      userInitiated: true,
     }),
   })
 
@@ -146,15 +166,4 @@ export async function analyzeWithAi(
     )
   }
   return result
-}
-
-export function createRedactedPreview(message: string): string {
-  return message
-    .replace(
-      /\b(otp|o\.?t\.?p\.?|pin|password|passcode|verification code|security code)\b\s*(?:is|ta|number|code|কোড|টি|টা|:|=|-)?\s*[A-Z0-9০-৯-]{3,12}|(ওটিপি|পিন|পাসওয়ার্ড|যাচাইকরণ কোড|নিরাপত্তা কোড)\s*(?:হলো|:|=|-)?\s*[A-Z0-9০-৯-]{3,12}/giu,
-      '$1$2: [redacted]',
-    )
-    .replace(/https?:\/\/[^\s<>"']+/giu, '[link redacted]')
-    .replace(/\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b/gu, '[email redacted]')
-    .replace(/(?<!\w)(?:\+?880|0)1[3-9][০-৯\d -]{8,12}(?!\w)/gu, '[phone redacted]')
 }

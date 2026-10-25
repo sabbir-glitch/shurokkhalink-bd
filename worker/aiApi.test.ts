@@ -5,30 +5,34 @@ import {
   SCAM_ANALYSIS_RESPONSE_VERSION,
   TRANSLATION_REQUEST_VERSION,
   TRANSLATION_RESPONSE_VERSION,
-  type AiAnalysisRequestV1,
+  type AiAnalysisRequestV3,
   type ScamAnalysisRequestV1,
   type ScamAnalysisResponseV1,
-  type TranslationRequestV1,
-  type TranslationResponseV1,
+  type TranslationRequestV2,
+  type TranslationResponseV2,
 } from '../src/lib/aiContracts'
 import { AiProviderError, createAiApi, type AiProvider } from './aiApi'
 
 const endpoint = 'https://shurokkha.example/api/ai/analyze'
 const sampleMessage = 'আপনার OTP এখনই পাঠান।'
-const consent = {
-  messageProcessing: true,
-  translation: true,
-  externalAiProcessing: true,
-}
-const validRequest: AiAnalysisRequestV1 = {
+const validRequest: AiAnalysisRequestV3 = {
   version: AI_ANALYSIS_REQUEST_VERSION,
   message: sampleMessage,
-  consent,
+  userInitiated: true,
 }
-const translationResult: TranslationResponseV1 = {
+const translationResult: TranslationResponseV2 = {
   version: TRANSLATION_RESPONSE_VERSION,
   sourceLanguage: 'bn',
+  detectedLanguage: 'bangla',
+  targetLanguage: 'en',
   translatedText: 'Send your OTP now.',
+}
+const banglaTranslationResult: TranslationResponseV2 = {
+  version: TRANSLATION_RESPONSE_VERSION,
+  sourceLanguage: 'en',
+  detectedLanguage: 'english',
+  targetLanguage: 'bn',
+  translatedText: 'এখনই আপনার OTP পাঠান।',
 }
 const analysisResult: ScamAnalysisResponseV1 = {
   version: SCAM_ANALYSIS_RESPONSE_VERSION,
@@ -52,7 +56,14 @@ function request(
 
 function makeProvider(): AiProvider {
   return {
-    translate: vi.fn(async () => translationResult),
+    translate: vi.fn(async (input: TranslationRequestV2) =>
+      input.targetLanguage === 'en'
+        ? translationResult
+        : {
+            ...banglaTranslationResult,
+            detectedLanguage: 'bangla' as const,
+          },
+    ),
     analyze: vi.fn(async () => analysisResult),
   }
 }
@@ -193,28 +204,14 @@ describe('Cloudflare Worker AI API foundation', () => {
     })
   })
 
-  it('requires all consent fields to be explicitly true', async () => {
+  it('requires the explicit user action marker', async () => {
     const handler = createAiApi()
-    const missing = await handler(
-      request('POST', JSON.stringify({ ...validRequest, consent: undefined })),
+    const missingAction = await handler(
+      request('POST', JSON.stringify({ ...validRequest, userInitiated: undefined })),
     )
-    const declined = await handler(
-      request(
-        'POST',
-        JSON.stringify({
-          ...validRequest,
-          consent: { ...consent, externalAiProcessing: false },
-        }),
-      ),
-    )
-
-    expect(missing?.status).toBe(400)
-    expect((await json(missing!)).error).toMatchObject({
-      code: 'consent_required',
-    })
-    expect(declined?.status).toBe(400)
-    expect((await json(declined!)).error).toMatchObject({
-      code: 'consent_required',
+    expect(missingAction?.status).toBe(400)
+    expect((await json(missingAction!)).error).toMatchObject({
+      code: 'user_action_required',
     })
   })
 
@@ -249,11 +246,12 @@ describe('Cloudflare Worker AI API foundation', () => {
   it('translates first, then analyses only the English translation', async () => {
     const calls: string[] = []
     const provider: AiProvider = {
-      translate: vi.fn(async (input: TranslationRequestV1) => {
+      translate: vi.fn(async (input: TranslationRequestV2) => {
         calls.push('translate')
         expect(input).toEqual({
           version: TRANSLATION_REQUEST_VERSION,
           text: sampleMessage,
+          targetLanguage: 'en',
         })
         return translationResult
       }),
@@ -272,19 +270,120 @@ describe('Cloudflare Worker AI API foundation', () => {
     expect(calls).toEqual(['translate', 'analyze'])
     expect(await json(response!)).toEqual({
       status: 'completed',
-      version: 'ai-analysis-response.v1',
-      translation: translationResult,
+      version: 'ai-analysis-response.v3',
+      englishTranslation: translationResult,
+      banglaTranslation: null,
       analysis: analysisResult,
     })
     expect(externalFetch).not.toHaveBeenCalled()
   })
 
-  it('does not analyse when translation output is malformed', async () => {
+  it('treats Banglish as Bangla and analyses its English translation', async () => {
+    const provider = makeProvider()
+    const banglishMessage = 'Apnar OTP ekhoni pathan'
+    const requestBody: AiAnalysisRequestV3 = {
+      ...validRequest,
+      message: banglishMessage,
+    }
+    const response = await createAiApi({ provider })(
+      request('POST', JSON.stringify(requestBody)),
+    )
+
+    expect(response?.status).toBe(200)
+    expect(provider.translate).toHaveBeenCalledOnce()
+    expect(provider.translate).toHaveBeenCalledWith(
+      {
+        version: TRANSLATION_REQUEST_VERSION,
+        text: banglishMessage,
+        targetLanguage: 'en',
+      },
+      expect.any(AbortSignal),
+    )
+    expect(provider.analyze).toHaveBeenCalledWith(
+      {
+        version: SCAM_ANALYSIS_REQUEST_VERSION,
+        englishText: translationResult.translatedText,
+      },
+      expect.any(AbortSignal),
+    )
+    expect(await json(response!)).toMatchObject({
+      englishTranslation: translationResult,
+      banglaTranslation: null,
+    })
+  })
+
+  it('detects English, translates it into Bangla, and analyses the English original', async () => {
+    const provider = makeProvider()
+    vi.mocked(provider.translate).mockImplementation(async (input) =>
+      input.targetLanguage === 'en'
+        ? { ...translationResult, detectedLanguage: 'english' }
+        : banglaTranslationResult,
+    )
+    const requestBody: AiAnalysisRequestV3 = {
+      ...validRequest,
+      message: 'Send your OTP now.',
+    }
+    const response = await createAiApi({ provider })(
+      request('POST', JSON.stringify(requestBody)),
+    )
+
+    expect(response?.status).toBe(200)
+    expect(provider.translate).toHaveBeenCalledWith(
+      {
+        version: TRANSLATION_REQUEST_VERSION,
+        text: requestBody.message,
+        targetLanguage: 'bn',
+      },
+      expect.any(AbortSignal),
+    )
+    expect(provider.analyze).toHaveBeenCalledWith(
+      {
+        version: SCAM_ANALYSIS_REQUEST_VERSION,
+        englishText: requestBody.message,
+      },
+      expect.any(AbortSignal),
+    )
+    expect(await json(response!)).toMatchObject({
+      englishTranslation: null,
+      banglaTranslation: banglaTranslationResult,
+    })
+  })
+
+  it('detects other-language text, translates into both languages, then analyses English', async () => {
+    const provider = makeProvider()
+    const calls: string[] = []
+    vi.mocked(provider.translate).mockImplementation(async (input) => {
+      calls.push(`translate-${input.targetLanguage}`)
+      return input.targetLanguage === 'en'
+        ? { ...translationResult, detectedLanguage: 'other' }
+        : { ...banglaTranslationResult, detectedLanguage: 'other' }
+    })
+    vi.mocked(provider.analyze).mockImplementation(async (input) => {
+      calls.push(`analyze-${input.englishText}`)
+      return analysisResult
+    })
+    const requestBody: AiAnalysisRequestV3 = {
+      ...validRequest,
+      message: 'Mensaje sospechoso',
+    }
+    const response = await createAiApi({ provider })(
+      request('POST', JSON.stringify(requestBody)),
+    )
+
+    expect(response?.status).toBe(200)
+    expect(calls).toEqual(['translate-en', 'translate-bn', 'analyze-Send your OTP now.'])
+    expect(await json(response!)).toMatchObject({
+      englishTranslation: { ...translationResult, detectedLanguage: 'other' },
+      banglaTranslation: { ...banglaTranslationResult, detectedLanguage: 'other' },
+    })
+  })
+
+  it('does not analyse when translation or language detection is malformed', async () => {
     const provider = makeProvider()
     vi.mocked(provider.translate).mockResolvedValue({
       ...translationResult,
-      version: 'wrong-version',
-    } as TranslationResponseV1)
+      detectedLanguage: 'uncertain',
+    } as TranslationResponseV2)
     const response = await createAiApi({ provider })(request())
     const body = await json(response!)
 
@@ -293,6 +392,19 @@ describe('Cloudflare Worker AI API foundation', () => {
     expect(body.error).toMatchObject({
       code: 'invalid_provider_response',
     })
+    expect(provider.analyze).not.toHaveBeenCalled()
+  })
+
+  it('does not analyse or return a result when the requested translation is empty', async () => {
+    const provider = makeProvider()
+    vi.mocked(provider.translate).mockResolvedValue({
+      ...translationResult,
+      translatedText: '',
+    })
+    const response = await createAiApi({ provider })(request())
+
+    expect(response?.status).toBe(502)
+    expect((await json(response!)).status).toBe('unavailable')
     expect(provider.analyze).not.toHaveBeenCalled()
   })
 
@@ -392,7 +504,7 @@ describe('Cloudflare Worker AI API foundation', () => {
     let translationAborted = false
     vi.mocked(translationProvider.translate).mockImplementation(
       (_input, signal) =>
-        new Promise<TranslationResponseV1>(() => {
+        new Promise<TranslationResponseV2>(() => {
           signal.addEventListener('abort', () => {
             translationAborted = true
           })
