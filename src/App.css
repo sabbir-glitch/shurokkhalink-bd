@@ -254,6 +254,71 @@ main {
   border-color: #b43e3e;
 }
 
+.consent-note {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.redacted-preview {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid #d9e0da;
+  border-radius: 10px;
+  background: #f8faf8;
+}
+
+.redacted-preview h3,
+.translation-panel h3,
+.analysis-panel h3 {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.redacted-preview p,
+.translation-panel p,
+.analysis-panel > p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #405047;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.consent-control {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 !important;
+  padding: 12px;
+  border: 1px solid #d9e0da;
+  border-radius: 10px;
+  background: #fcfdfc;
+  font-weight: 500 !important;
+  line-height: 1.65;
+}
+
+.consent-control input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin: 2px 0 0;
+  accent-color: var(--green);
+}
+
+.consent-control:focus-within {
+  outline: 3px solid rgb(40 112 73 / 18%);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 .input-meta {
   min-height: 54px;
   display: flex;
@@ -380,6 +445,47 @@ main {
 .results-empty p,
 .results-clear p {
   margin: 0;
+}
+
+.analysis-error {
+  padding: 16px 18px;
+  border: 1px solid #e7c5c2;
+  border-radius: 12px;
+  background: #fff8f7;
+  color: #812b27;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.ai-result {
+  display: grid;
+  gap: 14px;
+}
+
+.translation-panel,
+.analysis-panel {
+  padding: 17px 19px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.analysis-panel > p {
+  margin-bottom: 12px;
+}
+
+.analysis-panel .finding-list {
+  margin-top: 14px;
+}
+
+.analysis-panel .finding-copy h4 {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.analysis-panel .finding-copy p {
+  overflow-wrap: anywhere;
 }
 
 .empty-mark,

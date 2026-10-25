@@ -8,7 +8,7 @@ ShurokkhaLink BD is a Bangla-first, browser-based awareness tool that gives user
 ## Features
 
 - Bangla-first interface with an English language option.
-- Local, deterministic rule-based analysis; no external AI or analysis API is required.
+- Optional AI analysis through the server-side Worker API, with explicit consent before the original message is sent to a third-party provider.
 - Explanations and safer actions for detected warning indicators.
 - Informational URL-structure observations for selected characteristics, including HTTP, embedded URL credentials, IP-literal hosts, and punycode labels.
 - Synthetic examples, input clearing, and responsive layout.
@@ -17,11 +17,13 @@ ShurokkhaLink BD is a Bangla-first, browser-based awareness tool that gives user
 
 A finding indicates a pattern worth checking; it does not prove that a message or sender is fraudulent. A message with no findings is not guaranteed to be safe. Link presence alone is informational. The application does not visit, fetch, scan, or check the reputation of submitted URLs.
 
-This is a small deterministic rule-based checker, not a general language-understanding model. Its rules cover limited Bangla, English, and mixed-language patterns; uncommon spelling, grammar, context, Unicode tricks, and new scam patterns may be missed or misunderstood. Do not use it as the sole basis for a financial or security decision.
+AI output can be wrong, incomplete, or miss context. It is not proof that a message or sender is fraudulent, and a lack of indicators does not mean a message is safe. Submitted URLs are treated as text; the app does not visit or check their destinations. Do not use the result as the sole basis for a financial or security decision.
 
 ## Privacy design
 
-Message analysis runs in the browser. The application code does not send submitted message text to a server or external AI service, store it in browser storage, or write its contents to application logs. Clearing the form removes the current text and results from application state. The app has no backend, telemetry, analytics, or community-reporting feature.
+The app shows a redacted preview before submission, but that preview cannot catch every sensitive value. Only after the user checks the consent box and submits does the browser send the original message to the Worker. When its `GROQ_API_KEY` Worker Secret is configured, the Worker sends the original text to Groq for translation and sends the English translation for analysis. The app does not store submitted text in browser storage or write message contents or credentials to application logs. Groq's data-handling and retention policies apply to text sent to its service. Clearing the form removes the current text and results from application state.
+
+The Worker returns an explicit unavailable response when the secret is absent or the provider cannot return validated results. It does not fall back to fabricated or local findings. See [`worker/README.md`](worker/README.md) for server-side secret setup and provider behavior.
 
 This describes the application code and does not make claims about browser extensions, the user's device, or all metadata handled by the hosting provider. Normal requests needed to load the public website still go to the host.
 
@@ -29,7 +31,7 @@ This describes the application code and does not make claims about browser exten
 
 [`research/SHUROKKHABENCH-PROTOCOL.md`](research/SHUROKKHABENCH-PROTOCOL.md) documents ShurokkhaBench v0.1, a small synthetic **development** benchmark with English (`en`), Bangla (`bn`), and mixed (`mixed`) cases. The checked-in results snapshot is [`research/results/shurokkhabench-v0.1-results.json`](research/results/shurokkhabench-v0.1-results.json).
 
-The current 36-case benchmark measures agreement with hand-authored expected finding kinds. A 36/36 exact match means the implementation matched those expectations on that test corpus. It is **not** a measurement of real-world scam detection accuracy, and the test set is not an independent holdout set. Further evaluation should use distinct examples and documented annotation/review before making broader performance claims.
+The 36-case benchmark evaluates the repository's deterministic analysis library, not the Groq model or the current AI response. A 36/36 exact match means the library matched hand-authored expectations on that test corpus. It is **not** a measurement of real-world scam detection accuracy, and the test set is not an independent holdout set. Do not use it to make performance claims about AI analysis.
 
 ## Run locally
 
