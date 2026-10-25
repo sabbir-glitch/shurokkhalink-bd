@@ -23,32 +23,32 @@ unavailable response.
 
 ## Analysis workflow
 
-Send JSON to `POST /api/ai/analyze`:
+Send JSON to `POST /api/ai/analyze` after the user chooses the visible analysis
+action:
 
 ```json
 {
-  "version": "ai-analysis-request.v1",
+  "version": "ai-analysis-request.v3",
   "message": "Synthetic sample text",
-  "consent": {
-    "messageProcessing": true,
-    "translation": true,
-    "externalAiProcessing": true
-  }
+  "userInitiated": true
 }
 ```
 
-The endpoint requires all consent fields to be explicitly `true`, rejects
-cross-origin browser requests, and accepts messages up to 10,000 JavaScript
-characters in request bodies up to 48 KiB. The frontend shows a redacted
-preview before sending, but sends the original message only after the user
-consents and submits.
+The endpoint requires the explicit action marker, rejects cross-origin browser
+requests, and accepts messages up to 10,000 JavaScript characters in request
+bodies up to 48 KiB.
+Before the action button, the frontend discloses that the original message
+will be sent to an external service for translation and analysis. Typing does
+not make a request.
 
-The Worker sends the original message to Groq for translation first. Only the
-validated English translation is then sent for scam-indicator analysis. The
-Worker validates both provider outputs and returns only the versioned
-translation and structured analysis supported by the app's localized safety
-recommendations. It does not fetch URLs from messages. Groq receives the
-message text; its own data-handling and retention policies apply.
+The Worker detects the input language automatically. For Bangla and Banglish,
+it translates to English and analyses that translation. For English, it
+translates to Bangla and analyses the original English text. For other
+languages, it translates to English and Bangla, then analyses the English
+translation. Uncertain language detection or a failed translation does not
+produce a successful result. Translations and analysis are validated before
+returning, and each translation is labeled by target language. The Worker
+does not fetch URLs from messages.
 
 Provider calls have an eight-second timeout per stage and bounded response
 size. Missing credentials, timeouts, rate limits, provider failures, and

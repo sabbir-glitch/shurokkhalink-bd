@@ -9,6 +9,7 @@ import { createGroqProvider } from './groqProvider'
 
 const translationJson = JSON.stringify({
   sourceLanguage: 'bn',
+  detectedLanguage: 'bangla',
   translatedText: 'Send your OTP now.',
 })
 const analysisJson = JSON.stringify({
@@ -37,7 +38,11 @@ describe('Groq provider adapter', () => {
       .mockResolvedValueOnce(completion(analysisJson))
     const provider = createGroqProvider('worker-secret', fetcher)
     const translation = await provider.translate(
-      { version: TRANSLATION_REQUEST_VERSION, text: 'আপনার OTP এখনই পাঠান।' },
+      {
+        version: TRANSLATION_REQUEST_VERSION,
+        text: 'আপনার OTP এখনই পাঠান।',
+        targetLanguage: 'en',
+      },
       new AbortController().signal,
     )
     const analysis = await provider.analyze(
@@ -51,6 +56,8 @@ describe('Groq provider adapter', () => {
     expect(translation).toEqual({
       version: TRANSLATION_RESPONSE_VERSION,
       sourceLanguage: 'bn',
+      detectedLanguage: 'bangla',
+      targetLanguage: 'en',
       translatedText: 'Send your OTP now.',
     })
     expect(analysis).toEqual({
@@ -101,7 +108,7 @@ describe('Groq provider adapter', () => {
 
     await expect(
       provider.translate(
-        { version: TRANSLATION_REQUEST_VERSION, text: 'sample' },
+        { version: TRANSLATION_REQUEST_VERSION, text: 'sample', targetLanguage: 'en' },
         new AbortController().signal,
       ),
     ).rejects.toMatchObject({ code: 'invalid_response' })
@@ -120,7 +127,7 @@ describe('Groq provider adapter', () => {
 
     await expect(
       provider.translate(
-        { version: TRANSLATION_REQUEST_VERSION, text: 'sample' },
+        { version: TRANSLATION_REQUEST_VERSION, text: 'sample', targetLanguage: 'en' },
         new AbortController().signal,
       ),
     ).rejects.toMatchObject({
@@ -140,6 +147,7 @@ describe('Groq provider adapter', () => {
     const input = {
       version: TRANSLATION_REQUEST_VERSION,
       text: 'private message',
+      targetLanguage: 'en' as const,
     }
 
     await expect(

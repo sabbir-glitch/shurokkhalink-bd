@@ -16,7 +16,7 @@ These are project-owner terminal/dashboard observations recorded in the project 
 
 ## Privacy and application scope
 
-The browser shows a redacted preview, then sends the original submitted text to the Worker only after explicit user consent. When the `GROQ_API_KEY` Worker Secret is configured, the Worker sends the original text to Groq for translation, then sends the English translation for analysis. The app does not persist submitted text in browser storage or log message contents or credentials. The analyzer does not fetch or open submitted URLs. Groq's data-handling and retention policies apply to the text it receives. Automated provider tests use mocks and do not require a real key.
+The browser displays an external-processing disclosure before the user can submit the analysis form. Typing does not transmit the message; submitting does. When the `GROQ_API_KEY` Worker Secret is configured, the Worker processes the message according to the selected translation direction and analyses English text. The app does not persist submitted text in browser storage or log message contents or credentials. The analyzer does not fetch or open submitted URLs. The external service's data-handling and retention policies apply to the text it receives. Automated provider tests use mocks and do not require a real key.
 
 This is not a claim that no network traffic exists: loading the website requires requests to the hosting provider, which may process ordinary connection metadata. Browser extensions, the user's device, and the hosting provider are outside the application's direct control.
 
