@@ -19,5 +19,16 @@
       },
     },
   ],
-  "previews": {},
+  "previews": {
+    "ratelimits": [
+      {
+        "name": "AI_RATE_LIMITER",
+        "namespace_id": "2026102701",
+        "simple": {
+          "limit": 10,
+          "period": 60,
+        },
+      },
+    ],
+  },
 }
