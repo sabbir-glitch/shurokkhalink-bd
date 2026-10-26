@@ -10,6 +10,9 @@ type Language = 'bn' | 'en'
 
 const copy = {
   bn: {
+    documentTitle: 'ShurokkhaLink BD — সন্দেহজনক বার্তা যাচাই',
+    metaDescription:
+      'সন্দেহজনক বার্তা বিশ্লেষণ করতে AI ব্যবহার করুন। বিশ্লেষণ বেছে নিলেই বার্তাটি একটি বহিঃস্থ পরিষেবায় পাঠানো হয়।',
     languageLabel: 'ভাষা নির্বাচন',
     homeLabel: 'ShurokkhaLink BD-এর শুরুতে যান',
     bengali: 'বাংলা',
@@ -39,7 +42,7 @@ const copy = {
     serviceUnavailable:
       'পরিষেবাটি সাময়িকভাবে পাওয়া যাচ্ছে না। কোনো ফলাফল দেখানো হয়নি; পরে আবার চেষ্টা করুন।',
     rateLimited:
-      'পরিষেবাটিতে এখন অনেক অনুরোধ রয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন; কোনো ফলাফল দেখানো হয়নি।',
+      'এই নেটওয়ার্ক থেকে অনেক বিশ্লেষণ অনুরোধ এসেছে। কিছুক্ষণ পরে আবার চেষ্টা করুন; কোনো ফলাফল দেখানো হয়নি।',
     timeout: 'বিশ্লেষণে সময়সীমা অতিক্রান্ত হয়েছে। কোনো ফলাফল দেখানো হয়নি।',
     networkError:
       'পরিষেবায় সংযোগ করা যায়নি। কোনো ফলাফল দেখানো হয়নি।',
@@ -131,6 +134,9 @@ const copy = {
     },
   },
   en: {
+    documentTitle: 'ShurokkhaLink BD — Check a suspicious message',
+    metaDescription:
+      'Use AI to analyse a suspicious message. The message is sent to an external service only when you choose to analyse it.',
     languageLabel: 'Choose language',
     homeLabel: 'Go to the ShurokkhaLink BD home page',
     bengali: 'বাংলা',
@@ -159,7 +165,7 @@ const copy = {
     serviceUnavailable:
       'The service is temporarily unavailable. No result was displayed; try again later.',
     rateLimited:
-      'The service is receiving too many requests. Try again shortly; no result was displayed.',
+      'Too many analysis requests came from this network. Please try again shortly; no result was displayed.',
     timeout: 'The analysis timed out. No result was displayed.',
     networkError:
       'Could not connect to the service. No result was displayed.',
@@ -195,7 +201,7 @@ const copy = {
       'A link alone is not evidence of fraud. This check does not open a link or verify whether it is safe.',
     privacyTitle: 'Your privacy',
     privacyBody:
-      'The original message is sent to an external service for analysis. That service’s own data practices may apply.',
+      'The original message is sent to an external service for translation and analysis. That service’s own data practices may apply.',
     guidanceTitle: 'Not sure? Pause and verify.',
     guidanceBody:
       'Never share an OTP, PIN, password, or verification code—not even if someone you know asks. Find the organisation’s known official contact details yourself instead of using a link or number in the message.',
@@ -303,7 +309,10 @@ function App() {
           setAnalysisError(copy[language].serviceUnavailable)
         } else if (caught.code === 'provider_timeout') {
           setAnalysisError(copy[language].timeout)
-        } else if (caught.code === 'provider_rate_limited') {
+        } else if (
+          caught.code === 'provider_rate_limited' ||
+          caught.code === 'rate_limited'
+        ) {
           setAnalysisError(copy[language].rateLimited)
         } else if (
           caught.code === 'invalid_response' ||
@@ -350,6 +359,10 @@ function App() {
     }
     setLanguage(nextLanguage)
     document.documentElement.lang = nextLanguage
+    document.title = copy[nextLanguage].documentTitle
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute('content', copy[nextLanguage].metaDescription)
   }
 
   function indicatorLabel(indicator: ScamIndicatorV1): string {

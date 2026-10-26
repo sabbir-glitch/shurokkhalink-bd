@@ -11,7 +11,13 @@ import {
   type TranslationRequestV2,
   type TranslationResponseV2,
 } from '../src/lib/aiContracts'
-import { AiProviderError, createAiApi, type AiProvider } from './aiApi'
+import {
+  AiProviderError,
+  createAiApi as createAiApiImplementation,
+  type AiApiOptions,
+  type AiProvider,
+  type AiRequestRateLimiter,
+} from './aiApi'
 
 const endpoint = 'https://shurokkha.example/api/ai/analyze'
 const sampleMessage = 'আপনার OTP এখনই পাঠান।'
@@ -51,7 +57,21 @@ function request(
   body: BodyInit | null = JSON.stringify(validRequest),
   headers: HeadersInit = { 'Content-Type': 'application/json' },
 ): Request {
-  return new Request(endpoint, { method, body, headers })
+  const requestHeaders = new Headers(headers)
+  if (!requestHeaders.has('CF-Connecting-IP')) {
+    requestHeaders.set('CF-Connecting-IP', '203.0.113.10')
+  }
+  return new Request(endpoint, { method, body, headers: requestHeaders })
+}
+
+function createAiApi(options: AiApiOptions = {}) {
+  const rateLimiter: AiRequestRateLimiter = {
+    limit: vi.fn(async () => ({ success: true })),
+  }
+  return createAiApiImplementation({
+    ...options,
+    rateLimiter: options.rateLimiter ?? rateLimiter,
+  })
 }
 
 function makeProvider(): AiProvider {
@@ -239,6 +259,55 @@ describe('Cloudflare Worker AI API foundation', () => {
     expect(response?.status).toBe(403)
     expect((await json(response!)).error).toMatchObject({
       code: 'origin_not_allowed',
+    })
+    expect(provider.translate).not.toHaveBeenCalled()
+  })
+
+  it('blocks requests that exceed the per-IP rate limit before calling the provider', async () => {
+    const provider = makeProvider()
+    const limit = vi.fn(async () => ({ success: false }))
+    const response = await createAiApi({
+      provider,
+      rateLimiter: { limit },
+    })(request())
+
+    expect(response?.status).toBe(429)
+    expect((await json(response!)).error).toMatchObject({
+      code: 'rate_limited',
+    })
+    expect(response?.headers.get('Cache-Control')).toContain('no-store')
+    expect(limit).toHaveBeenCalledWith({ key: '203.0.113.10' })
+    expect(provider.translate).not.toHaveBeenCalled()
+    expect(provider.analyze).not.toHaveBeenCalled()
+  })
+
+  it('fails closed when the rate limiter is unavailable or the client IP is missing', async () => {
+    const provider = makeProvider()
+    const missingLimiter = await createAiApiImplementation({ provider })(request())
+    const limiterFailure = await createAiApi({
+      provider,
+      rateLimiter: {
+        limit: vi.fn().mockRejectedValue(new Error('rate limiter unavailable')),
+      },
+    })(request())
+    const missingIpRequest = new Request(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(validRequest),
+    })
+    const missingIp = await createAiApi({ provider })(missingIpRequest)
+
+    expect(missingLimiter?.status).toBe(503)
+    expect((await json(missingLimiter!)).error).toMatchObject({
+      code: 'rate_limit_unavailable',
+    })
+    expect(limiterFailure?.status).toBe(503)
+    expect((await json(limiterFailure!)).error).toMatchObject({
+      code: 'rate_limit_unavailable',
+    })
+    expect(missingIp?.status).toBe(503)
+    expect((await json(missingIp!)).error).toMatchObject({
+      code: 'rate_limit_unavailable',
     })
     expect(provider.translate).not.toHaveBeenCalled()
   })
@@ -573,6 +642,7 @@ describe('Cloudflare Worker AI API foundation', () => {
     const { default: worker } = await import('./index')
     const response = await worker.fetch(new Request('https://shurokkha.example/'), {
       ASSETS: { fetch: assetFetch },
+      AI_RATE_LIMITER: { limit: vi.fn(async () => ({ success: true })) },
     })
 
     expect(response).toBe(assetResponse)
@@ -586,6 +656,7 @@ describe('Cloudflare Worker AI API foundation', () => {
       new Request('https://shurokkha.example/api/ai/status'),
       {
         ASSETS: { fetch: vi.fn() },
+        AI_RATE_LIMITER: { limit: vi.fn(async () => ({ success: true })) },
         GROQ_API_KEY: secret,
       },
     )
@@ -598,6 +669,21 @@ describe('Cloudflare Worker AI API foundation', () => {
       version: 'ai-api.v1',
     })
     expect(responseText).not.toContain(secret)
+    expect(externalFetch).not.toHaveBeenCalled()
+  })
+
+  it('uses the configured rate-limit binding before any provider call', async () => {
+    const { default: worker } = await import('./index')
+    const limit = vi.fn(async () => ({ success: false }))
+    const response = await worker.fetch(request(), {
+      ASSETS: { fetch: vi.fn() },
+      AI_RATE_LIMITER: { limit },
+      GROQ_API_KEY: 'test-groq-secret',
+    })
+
+    expect(response.status).toBe(429)
+    expect((await json(response)).error).toMatchObject({ code: 'rate_limited' })
+    expect(limit).toHaveBeenCalledWith({ key: '203.0.113.10' })
     expect(externalFetch).not.toHaveBeenCalled()
   })
 })

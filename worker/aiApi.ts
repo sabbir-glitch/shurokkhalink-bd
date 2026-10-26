@@ -33,7 +33,12 @@ export interface AiProvider {
 
 export interface AiApiOptions {
   provider?: AiProvider
+  rateLimiter?: AiRequestRateLimiter
   providerTimeoutMs?: number
+}
+
+export interface AiRequestRateLimiter {
+  limit(options: { key: string }): Promise<{ success: boolean }>
 }
 
 export class AiProviderError extends Error {
@@ -332,6 +337,44 @@ async function handleAnalysis(
       'ai_not_configured',
       'AI analysis is unavailable because a provider has not been configured.',
       'unavailable',
+    )
+  }
+
+  if (!options.rateLimiter) {
+    return errorResponse(
+      503,
+      'rate_limit_unavailable',
+      'AI analysis is temporarily unavailable. No result was produced.',
+      'unavailable',
+    )
+  }
+
+  const clientIp = request.headers.get('cf-connecting-ip')
+  if (!clientIp) {
+    return errorResponse(
+      503,
+      'rate_limit_unavailable',
+      'AI analysis is temporarily unavailable. No result was produced.',
+      'unavailable',
+    )
+  }
+
+  let rateLimitResult: { success: boolean }
+  try {
+    rateLimitResult = await options.rateLimiter.limit({ key: clientIp })
+  } catch {
+    return errorResponse(
+      503,
+      'rate_limit_unavailable',
+      'AI analysis is temporarily unavailable. No result was produced.',
+      'unavailable',
+    )
+  }
+  if (!rateLimitResult.success) {
+    return errorResponse(
+      429,
+      'rate_limited',
+      'Too many analysis requests from this network. Please try again shortly.',
     )
   }
 

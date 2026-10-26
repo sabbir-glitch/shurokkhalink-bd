@@ -56,5 +56,13 @@ malformed responses return explicit `error` or `unavailable` responses.
 Provider details and credentials are not logged or included in API responses.
 The API uses `Cache-Control: no-store`.
 
+The Worker uses a Cloudflare rate-limiting binding to allow up to 10 validated
+analysis requests per client IP per 60-second period before calling the
+provider. Requests are limited using Cloudflare's `CF-Connecting-IP` header.
+The native binding is approximate and local to a Cloudflare location, so this
+is an abuse-reduction measure, not a strict global quota or a guarantee against
+provider charges. If the binding fails or the client IP is unavailable, the
+Worker returns an unavailable response without calling the provider.
+
 Worker tests mock the provider or `fetch`; CI does not require a real key or
 make requests to Groq.

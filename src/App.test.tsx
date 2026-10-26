@@ -410,7 +410,7 @@ describe('message analysis workflow', () => {
       apiResponse(
         {
           status: 'unavailable',
-          error: { code: 'provider_rate_limited', message: 'Rate limited' },
+          error: { code: 'rate_limited', message: 'Rate limited' },
         },
         503,
       ),
@@ -422,7 +422,7 @@ describe('message analysis workflow', () => {
     expect(
       (
         await screen.findAllByText(
-          'The service is receiving too many requests. Try again shortly; no result was displayed.',
+          'Too many analysis requests came from this network. Please try again shortly; no result was displayed.',
         )
       ).length,
     ).toBeGreaterThan(0)
@@ -456,6 +456,9 @@ describe('message analysis workflow', () => {
 
   it('switches disclosure to English without a translation-direction selector', async () => {
     const user = userEvent.setup()
+    const metaDescription = document.createElement('meta')
+    metaDescription.name = 'description'
+    document.head.append(metaDescription)
     render(<App />)
     await user.click(screen.getByRole('button', { name: 'English' }))
 
@@ -467,12 +470,28 @@ describe('message analysis workflow', () => {
     expect(
       screen.getByText('Understand suspicious messages and choose safer next steps.'),
     ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'The original message is sent to an external service for translation and analysis. That service’s own data practices may apply.',
+      ),
+    ).toBeInTheDocument()
+    expect(document.title).toBe('ShurokkhaLink BD — Check a suspicious message')
+    expect(document.documentElement.lang).toBe('en')
+    expect(
+      document.querySelector('meta[name="description"]')?.getAttribute('content'),
+    ).toBe(
+      'Use AI to analyse a suspicious message. The message is sent to an external service only when you choose to analyse it.',
+    )
     expect(screen.queryByLabelText(/Translation direction/)).not.toBeInTheDocument()
     expect(screen.queryByLabelText(/অনুবাদের দিক/)).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /Analyse message/ }))
     expect(screen.getByRole('alert')).toHaveTextContent(
       'Add some message text before analysing.',
     )
+    await user.click(screen.getByRole('button', { name: 'বাংলা' }))
+    expect(document.title).toBe('ShurokkhaLink BD — সন্দেহজনক বার্তা যাচাই')
+    expect(document.documentElement.lang).toBe('bn')
+    metaDescription.remove()
   })
 
   it('shows the exact warning and introduction credit in both interface languages', async () => {
