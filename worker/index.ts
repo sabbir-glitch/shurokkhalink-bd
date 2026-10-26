@@ -1,4 +1,4 @@
-import { createAiApi } from './aiApi'
+import { createAiApi, type AiRequestRateLimiter } from './aiApi'
 import { createGroqProvider } from './groqProvider'
 
 interface AssetBinding {
@@ -7,6 +7,7 @@ interface AssetBinding {
 
 export interface WorkerEnvironment {
   ASSETS: AssetBinding
+  AI_RATE_LIMITER: AiRequestRateLimiter
   GROQ_API_KEY?: string
 }
 
@@ -15,6 +16,7 @@ export default {
     const apiKey = environment.GROQ_API_KEY
     const handleApiRequest = createAiApi({
       provider: apiKey?.trim() ? createGroqProvider(apiKey) : undefined,
+      rateLimiter: environment.AI_RATE_LIMITER,
     })
     const apiResponse = await handleApiRequest(request)
     if (apiResponse) return apiResponse
